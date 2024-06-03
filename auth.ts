@@ -91,7 +91,6 @@ export const {
       token.firstName = existingUser.firstName;
       token.lastName = existingUser.lastName;
       token.id = existingUser.id;
-      token.approverId = existingUser.approverId;
       token.email = existingUser.email;
       token.role = existingUser.role;
       token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;

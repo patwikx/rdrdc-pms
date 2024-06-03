@@ -1,11 +1,11 @@
 import * as z from "zod";
-import { Months, Periods, Statuses, UserRole } from "@prisma/client";
+import { Statuses, UserRole } from "@prisma/client";
 
 
 export const SettingsSchema = z.object({
   name: z.optional(z.string()),
   isTwoFactorEnabled: z.optional(z.boolean()),
-  role: z.enum([UserRole.Administrator, UserRole.User, UserRole.Approver, UserRole.PMD]),
+  role: z.enum([UserRole.Administrator, UserRole.User, UserRole.Manager, UserRole.Supervisor, UserRole.Viewer]),
   email: z.optional(z.string().email()),
   password: z.optional(z.string().min(6)),
   newPassword: z.optional(z.string().min(6)),
@@ -53,7 +53,7 @@ export const LoginSchema = z.object({
   code: z.optional(z.string()),
 });
 
-export const RegisterSchema = z.object({
+export const RegisterUserSchema = z.object({
   email: z.string().email({
     message: "Email is required",
   }),
@@ -68,11 +68,7 @@ export const RegisterSchema = z.object({
   }),
   address: z.string().optional(),
   contactNo: z.string().optional(),
-  approverId: z.string(),
-  department: z.string().min(1, {
-    message: "Department is required."
-  }),
-  role: z.enum([UserRole.Administrator, UserRole.User, UserRole.Approver]).optional(),
+  role: z.enum([UserRole.Administrator, UserRole.User, UserRole.Manager, UserRole.Supervisor, UserRole.Viewer]).optional(),
 });
 
 export const CreateLeaveTypeSchema = z.object({
@@ -82,11 +78,33 @@ export const CreateLeaveTypeSchema = z.object({
   description: z.string().optional(),
 });
 
-export const CreateDepartmentSchema = z.object({
-  name: z.string().min(1, {
-    message: "Department name is required."
+export const CreatePropertySchema = z.object({
+  propertyCode: z.string().min(1, {
+    message: "Property Code is requried."
   }),
-  description: z.string().optional()
+  propertyName: z.string().min(1, {
+    message: "Property Name is required. "
+  }),
+  titleNo: z.string().min(1, {
+    message: "Title No. is required."
+  }),
+  lotNo: z.string().min(1, {
+    message: "Lot No. is required."
+  }),
+  address: z.string().min(1, {
+    message: "Property Address is required."
+  }),
+  city: z.string().min(1, {
+    message: "City is required."
+  }),
+  province: z.string().min(1, {
+    message: "Province is required."
+  }),
+  zipCode: z.string().min(1, {
+    message: "Zip Code is required"
+  }),
+  propertyImage: z.string().optional(),
+  createdBy: z.string()
 })
 
 export const CreateLeaveSchema = z.object({
@@ -106,30 +124,4 @@ export const CreateLeaveSchema = z.object({
   userId: z.string(),
   numberOfDays: z.string().optional(),
   leaveBalance: z.string().optional(),
-})
-
-export const UploadPayslipSchema = z.object({
-  payslipFile: z.string().min(1, {
-    message: "Payslip is required."
-  }),
-  months: z.enum([Months.January, Months.February, Months.March, Months.April, Months.May,
-    Months.June, Months.July, Months.August, Months.September, Months.October, Months.November, Months.December
-  ]),
-  periods: z.enum([Periods.FirstHalf, Periods.SecondHalf]),
-  userId: z.string()
-})
-
-export const ApproveLeaveSchema = z.object({
-  status: z.enum([Statuses.Approved, Statuses.Declined]),
-  approverRemarks: z.string().min(1, {
-    message: "Approver Remarks is required."
-  }),
-  pmdStatus: z.enum([Statuses.Approved, Statuses.Declined]).optional(),
-  pmdRemarks: z.string().optional(),
-})
-
-export const ApprovePMDSchema = z.object({
-  pmdStatus: z.enum([Statuses.Approved, Statuses.Declined]),
-  status: z.enum([Statuses.Approved, Statuses.Declined]).optional(),
-  pmdRemarks: z.string().optional(),
 })

@@ -19,13 +19,12 @@ export const Header = ({
     <div className="w-full flex flex-col gap-y-4 items-center justify-center">
       <div className="flex items-center">
       <Image src='/assets/rdrdc.webp' alt="rdrdc-logo" width={60} height={60}/>
-        <Image src='/assets/rdh.webp' alt="rdrdc-logo" width={70} height={70}/>
         </div>
       <h1 className={cn(
         "text-3xl font-semibold",
         font.className,
       )}>
-       RDRDC & RDH - HRIS
+       RDRDC - CRM
       </h1>
       <p className="text-muted-foreground text-sm">
         {label}

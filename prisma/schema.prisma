@@ -11,47 +11,19 @@ generator client {
 
 enum UserRole {
   Administrator
-  Approver
+  Manager
+  Supervisor
   User
-  PMD
+  Viewer
 }
 
-enum Months {
-  January
-  February
-  March
-  April
-  May
-  June
-  July
-  August
-  September
-  October
-  November
-  December
-}
-
-enum Periods {
-  FirstHalf
-  SecondHalf
-}
-
-enum PlsType {
-  Official
-  Personal
-  Leave
-}
-
-enum DayType {
-  HalfDay
-  WholeDay
-}
 
 enum Statuses {
-  Approved
-  Pending
-  Declined
+  Occupied
+  Vacant
+  Maintenance
 }
+
 model User {
   id            String    @id @default(cuid())
   firstName     String
@@ -64,66 +36,82 @@ model User {
   password      String?
   role          UserRole? @default(User)
   department    String?
-  leaveBalance  String?
   accounts      Account[]
   isTwoFactorEnabled Boolean @default(false)
   twoFactorConfirmation TwoFactorConfirmation?
   createdAt     DateTime @default(now())
   deletedAt     DateTime?
   updatedAt     DateTime @updatedAt
-  leave         Leave[] @relation("UserToLeave")
-  forApprovalLeaves Leave[] @relation("ApproverToLeave")
-  approverId    String?
-  payslip       Payslip[] @relation("UserToPayslip")
+  properties    Property[]
+  units         Unit[]
+  tenants       Tenant[]
+}
+
+model Property {
+  id            String @id @default(cuid())
+  propertyCode  String
+  propertyName  String
+  titleNo       String
+  lotNo         String
+  address       String
+  city          String
+  province      String
+  zipCode       String
+  propertyImage String?
+  createdBy     String?
+  users         User? @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  deletedAt     DateTime?
+  lastUpdate    DateTime?
+  updatedBy     String?
+  units         Unit[]
+}
+
+model Unit {
+  id            String @id @default(cuid())
+  unitCode      String
+  unitName      String
+  unitStatus    Statuses @default(Vacant)
+  gFloorArea    Float?
+  mezFloor      Float?
+  secFloor      Float?
+  thirdFloor    Float?
+  roofTop       Float?
+  totalArea     Float
+  unitImage     String?
+  createdBy     String?
+  users         User? @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  deletedAt     DateTime?
+  lastUpdate    DateTime?
+  updatedBy     String?
+  propertyId    String
+  property      Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenants       Tenant[]
+}
+
+model Tenant {
+  id            String @id @default(cuid())
+  tenantCode    String
+  tenantName    String
+  tenantEmail   String
+  tenantImage   String
+  contactNo     String?
+  address       String?
+  city          String?
+  zipCode       String?
+  createdAt     DateTime @default(now())
+  createdBy     String?
+  users         User? @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  deletedAt     DateTime?
+  lastUpdate    DateTime?
+  updatedBy     String?
+  unitId        String
+  units         Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
 }
 
 
 
-model Department {
-  id          String @id @default(cuid()) @unique
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedBy   String?
-  deletedAt   DateTime?
-}
-
-
-model Payslip {
-  id          String @id @default(cuid()) @unique
-  payslipFile String
-  months      Months
-  periods     Periods
-  userId      String
-  user        User @relation("UserToPayslip",fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-}
-
-model Leave {
-  id          String @id @default(cuid()) @unique
-  leaveType   String
-  startDate   String
-  endDate     String
-  reason      String
-  numberOfDays String?
-  approverRemarks String?
-  pmdRemarks  String?
-  dayType     DayType?
-  status      Statuses @default(Pending)
-  pmdStatus   Statuses? @default(Pending)
-  createdAt   DateTime @default(now())
-  userId      String
-  user        User @relation("UserToLeave", fields: [userId], references: [id])
-  approverId  String
-  approver    User? @relation("ApproverToLeave", fields: [approverId], references: [id])
-}
-
-model LeaveType {
-  id          String @id @default(cuid()) @unique
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-}
 
 model Account {
   id                 String  @id @default(cuid())
@@ -176,10 +164,5 @@ model TwoFactorConfirmation {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId])
-}
-
-model Board {
-  id String @id @default(cuid())
-  title String
 }
 

@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { Badge } from '../ui/badge'
 
-export function Header () {
+export function Headerx () {
   const user = useCurrentUser();
   const router = useRouter();
 
@@ -25,74 +25,6 @@ export function Header () {
   };
 
   return (
-    <div className="flex w-full items-center justify-between mb-4">
-      <header className="sticky top-0 flex h-16 items-center gap-6 border-b bg-background px-4 md:px-6 w-full">
-        <SideBarNav />
-        <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-          <SystemMenu />
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0 md:hidden"
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left">
-              <nav className="grid gap-6 text-lg font-medium">
-                <Link href="#" className="flex items-center gap-2 text-lg font-semibold">
-                  <TeamSwitcher className="mt-4" />
-                </Link>
-                <Link href="#" className="flex items-center gap-2 hover:text-foreground">
-                  <HomeIcon className="h-5 w-5" />
-                  Dashboard
-                </Link>
-                <Link
-                  href="#"
-                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-                >
-                  <ClipboardListIcon className="h-5 w-5" />
-                  Leave Management
-                </Link>
-                <Link
-                  href="#"
-                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-                >
-                  <FileTextIcon className="h-5 w-5" />
-                  Payslip Management
-                </Link>
-                <Link
-                  href="#"
-                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-                >
-                  <User className="h-5 w-5" />
-                  Profile
-                </Link>
-                <Link
-                  href="#"
-                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-                >
-                  <Settings className="h-5 w-5" />
-                  Settings
-                </Link>
-              </nav>
-            </SheetContent>
-          </Sheet>
-        </nav>
-        <div className="flex items-center gap-4 ml-auto">
-          <form className="relative flex-1 sm:flex-initial">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search ..."
-                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-              />
-            </div>
-          </form>
           <DropdownMenu>
           <DropdownMenuTrigger asChild>
   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -135,10 +67,7 @@ export function Header () {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-        </div>
-      </header>
-    </div>
   )
 }
 
-export default Header
+export default Headerx

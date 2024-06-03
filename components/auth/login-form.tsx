@@ -3,7 +3,7 @@
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { useState, useTransition } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 
@@ -22,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { login } from "@/actions/login";
-import { useCurrentUser } from "@/hooks/use-current-user";
 
 
 export const LoginForm = () => {
@@ -44,9 +43,6 @@ export const LoginForm = () => {
       password: "",
     },
   });
-
-  const router = useRouter();
-  const currentUser = useCurrentUser();
 
   const onSubmit = (values: z.infer<typeof LoginSchema>) => {
     setError("");
@@ -112,7 +108,6 @@ export const LoginForm = () => {
                         <Input
                           {...field}
                           disabled={isPending}
-                          placeholder="john.doe@example.com"
                           type="email"
                         />
                       </FormControl>

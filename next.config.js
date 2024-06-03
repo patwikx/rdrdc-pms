@@ -20,7 +20,7 @@ const nextConfig = {
         },
         {
           protocol: 'https',
-          hostname: 'files.stripe.com',
+          hostname: 'images.unsplash.com',
         },
         ],
       },

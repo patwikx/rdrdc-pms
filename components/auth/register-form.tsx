@@ -1,11 +1,11 @@
 "use client";
 
 import * as z from "zod";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { RegisterSchema } from "@/schemas";
+import { RegisterUserSchema } from "@/schemas";
 import { Input } from "@/components/ui/input";
 import {
   Form,
@@ -21,90 +21,25 @@ import { FormSuccess } from "@/components/form-success";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
 import { UserRole } from "@prisma/client";
-import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
-import { PlusCircleIcon } from "lucide-react";
+
 import { register } from "@/actions/queries";
-
-type Approvers = {
-  id: string;
-  firstName: string;
-  lastName: string;
-};
-
-type Department = {
-  id: string;
-  name: string;
-}
+import { Card, CardContent, CardHeader } from "../ui/card";
 
 export const RegisterForm = () => {
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
-  const [approvers, setApprovers] = useState<Approvers[]>([]);
-  const [pmdApprovers, setPMD] = useState<Approvers[]>([]);
-  const [departments, setDepartment] = useState<Department[]>([]);
   const user = useCurrentUser();
 
-  useEffect(() => {
-    fetch('/api/fetch-pmd')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => setPMD(data.pmdApprovers))
-      .catch(() =>
-        toast.error('An error occurred while fetching approvers. Please try again.')
-      );
-  }, []);
 
-  useEffect(() => {
-    fetch('/api/fetch-approver')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => setApprovers(data.approvers))
-      .catch(() =>
-        toast.error('An error occurred while fetching approvers. Please try again.')
-      );
-  }, []);
-
-
-  useEffect(() => {
-    fetch('/api/fetch-department')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => setDepartment(data.departments))
-      .catch(() =>
-        toast.error('An error occurred while fetching departments. Please try again.')
-      );
-  }, []);
-
-  const form = useForm<z.infer<typeof RegisterSchema>>({
-    resolver: zodResolver(RegisterSchema),
+  const form = useForm<z.infer<typeof RegisterUserSchema>>({
+    resolver: zodResolver(RegisterUserSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -113,12 +48,10 @@ export const RegisterForm = () => {
       contactNo: "",
       address: "",
       role: undefined,
-      approverId: "",
-      department: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
+  const onSubmit = (values: z.infer<typeof RegisterUserSchema>) => {
     setError("");
     setSuccess("");
     startTransition(() => {
@@ -141,20 +74,11 @@ export const RegisterForm = () => {
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button className="h-8 w-[150px] lg:w-[250px]">
-          <PlusCircleIcon className="mr-2 w-4 h-4" />
-          Register Employee
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px]">
-        <DialogHeader>
-          <DialogTitle>Employee Information</DialogTitle>
-          <DialogDescription>
-            Enter your required employee details. Click submit when you&apos;re done.
-          </DialogDescription>
-        </DialogHeader>
+        <Card>
+          <CardHeader className="font-semibold font-2xl">
+            Create System User
+          </CardHeader>
+          <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex flex-col space-y-4">
@@ -247,7 +171,9 @@ export const RegisterForm = () => {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value={UserRole.User}>User</SelectItem>
-                                <SelectItem value={UserRole.Approver}>Approver</SelectItem>
+                                <SelectItem value={UserRole.Manager}>Manager</SelectItem>
+                                <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
+                                <SelectItem value={UserRole.Viewer}>Viewer</SelectItem>
                               </SelectContent>
                             </Select>
                           )}
@@ -257,91 +183,8 @@ export const RegisterForm = () => {
                     </FormItem>
                   )}
                 />
-                </div>
-                <div className="w-1/2">
-                <FormField
-                  control={form.control}
-                  name="department"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-semibold">Department</FormLabel>
-                      <FormControl>
-                        <Controller
-                          name="department"
-                          control={form.control}
-                          render={({ field }) => (
-                            <Select
-                              value={field.value}
-                              onValueChange={field.onChange}
-                              disabled={isPending}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select department..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectGroup>
-                                  {departments.map((department) => (
-                                    <SelectItem key={department.id} value={department.name}>
-                                      {department.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectGroup>
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                </div>
-                
-                
+                </div>  
               </div>
-
-              <div className="flex w-full space-x-4">
-                <div className="w-full">
-                <FormField
-                  control={form.control}
-                  name="approverId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-semibold">Approver</FormLabel>
-                      <FormControl>
-                        <Controller
-                          name="approverId"
-                          control={form.control}
-                          render={({ field }) => (
-                            <Select
-                              value={field.value}
-                              onValueChange={field.onChange}
-                              disabled={isPending}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select approver..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectGroup>
-                                  {approvers.map((approver) => (
-                                    <SelectItem key={approver.id} value={approver.id}>
-                                      {approver.firstName} {approver.lastName}
-                                    </SelectItem>
-                                  ))}
-                                </SelectGroup>
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                </div>
-              </div>
-
-
               <div className="flex w-full space-x-4">
                 <div className="w-1/2">
                 <FormField
@@ -384,7 +227,7 @@ export const RegisterForm = () => {
             </Button>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+        </CardContent>
+        </Card>
   );
 };

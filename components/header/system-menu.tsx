@@ -34,8 +34,8 @@ export function SystemMenu() {
 
   const isAdmin = user?.role === 'Administrator';
   const isUser = user?.role === 'User';
-  const isPMD = user?.role === 'PMD';
-  const isApprover = user?.role === 'Approver';
+  const isManager = user?.role === 'Manager';
+  const isSupervisor = user?.role === 'Supervisor';
 
   return (
     <NavigationMenu>
@@ -46,15 +46,15 @@ export function SystemMenu() {
         <NavigationMenuItem className="ml-4">
           <Link href="/dashboard/leave" legacyBehavior passHref>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-              <CalendarCheck className="h-4 w-4 mr-2"/>Leave Management
+              <CalendarCheck className="h-4 w-4 mr-2"/>Property Management
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>
-        {(isAdmin || isPMD) && (
+        {(isAdmin || isManager) && (
         <NavigationMenuItem>
         <Link href="/dashboard/employee-management" legacyBehavior passHref>
           <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-            <Users2Icon className="h-4 w-4 mr-2"/>Employee Management
+            <Users2Icon className="h-4 w-4 mr-2"/>Space Management
           </NavigationMenuLink>
         </Link>
       </NavigationMenuItem>
@@ -62,7 +62,7 @@ export function SystemMenu() {
           <NavigationMenuItem>
           <Link href="/dashboard/payslip" legacyBehavior passHref>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-              <FileTextIcon className="h-4 w-4 mr-2"/>View Payslip
+              <FileTextIcon className="h-4 w-4 mr-2"/>Tenant Management
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>

@@ -1,47 +1,18 @@
-import { ApproveLeaveSchema, ApprovePMDSchema, CreateDepartmentSchema, CreateLeaveSchema, CreateLeaveTypeSchema, NewPasswordSchema, RegisterSchema, ResetSchema, SettingsSchema, UploadPayslipSchema } from "@/schemas";
+'use server'
+
+import {  CreatePropertySchema, NewPasswordSchema, RegisterUserSchema, ResetSchema, SettingsSchema } from "@/schemas";
 import { prisma } from "@/lib/db";
-import { getEmailByApproverId, getEmailByUserId, getEmailByUserIdUpload, getUserByEmail, getUserById } from "@/data/user";
-import { sendLeaveNotif, sendPasswordResetEmail, sendUploadNotif, sendVerificationEmail } from "@/lib/mail";
+import {  getUserByEmail, getUserById } from "@/data/user";
+import {  sendPasswordResetEmail, sendVerificationEmail } from "@/lib/mail";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { currentUser } from "@/lib/auth";
 import { generatePasswordResetToken, generateVerificationToken } from "@/lib/tokens";
 import bcrypt from "bcryptjs";
-import { signOut, update } from "@/auth";
+import { update } from "@/auth";
 import { getVerificationTokenByToken } from "@/data/verificiation-token";
 import { getPasswordResetTokenByToken } from "@/data/password-reset-token";
 
-
-export const UploadPayslip = async (values: z.infer<typeof UploadPayslipSchema>) => {
-    const validatedFields = UploadPayslipSchema.safeParse(values);
-  
-    if (!validatedFields.success) {
-      return { error: "Invalid fields!" };
-    }
-  
-    const { payslipFile, months, periods, userId } = validatedFields.data;
-  
-    await prisma.payslip.create({
-      data: {
-        payslipFile,
-        months,
-        periods,
-        userId
-      },
-    });
-  
-      // Retrieve the email associated with the given userId
-      const email = await getEmailByUserIdUpload(userId);
-  
-      // Send email notification with the payslip URL
-      await sendUploadNotif(email, payslipFile, months, periods);
-  
-  
-  
-    revalidatePath('/dashboard/payslip')
-    return { success: "Payslip uploaded successfully." };
-  };
-  
 
   export const settings = async (
     values: z.infer<typeof SettingsSchema>
@@ -227,262 +198,45 @@ export const UploadPayslip = async (values: z.infer<typeof UploadPayslipSchema>)
     return { success: "Password updated!" };
   };
 
-  export const createLeaveType = async (values: z.infer<typeof CreateLeaveTypeSchema>) => {
-    const validatedFields = CreateLeaveTypeSchema.safeParse(values);
+
+
+
+  export const createProperty = async (values: z.infer<typeof CreatePropertySchema>) => {
+    const validatedFields = CreatePropertySchema.safeParse(values);
   
     if (!validatedFields.success) {
       return { error: "Invalid fields!" };
     }
   
-    const { name, description } = validatedFields.data;
+    const { propertyName, propertyCode, titleNo, lotNo, address, city, province, zipCode, propertyImage, createdBy } = validatedFields.data;
   
-    await prisma.leaveType.create({
+    await prisma.property.create({
       data: {
-        name,
-        description
+        propertyName,
+        propertyCode,
+        titleNo,
+        lotNo,
+        address,
+        city,
+        province,
+        zipCode,
+        propertyImage,
+        createdBy
       },
     });
     revalidatePath('/dashboard/settings')
-    return { success: "Leave type created successfully!" };
+    return { success: "Property created successfully!" };
   };
 
 
-  export const createDepartment = async (values: z.infer<typeof CreateDepartmentSchema>) => {
-    const validatedFields = CreateDepartmentSchema.safeParse(values);
+  export const register = async (values: z.infer<typeof RegisterUserSchema>) => {
+    const validatedFields = RegisterUserSchema.safeParse(values);
   
     if (!validatedFields.success) {
       return { error: "Invalid fields!" };
     }
   
-    const { name, description } = validatedFields.data;
-  
-    await prisma.department.create({
-      data: {
-        name,
-        description
-      },
-    });
-    revalidatePath('/dashboard/settings')
-    return { success: "Department created successfully!" };
-  };
-
-  export const CreateLeave = async (values: z.infer<typeof CreateLeaveSchema>) => {
-    const validatedFields = CreateLeaveSchema.safeParse(values);
-  
-    if (!validatedFields.success) {
-      return { error: "Invalid fields!" };
-    }
-  
-    const { startDate, endDate, leaveType, reason, approverId, userId, numberOfDays, } = validatedFields.data;
-  
-    // Create leave record
-    await prisma.leave.create({
-      data: {
-        startDate,
-        endDate,
-        reason,
-        leaveType,
-        userId,
-        approverId,
-        numberOfDays
-      },
-    });
-  
-    // Retrieve the email associated with the given approverId
-    const email = await getEmailByApproverId(approverId);
-    const [firstName, lastName] = await getEmailByUserId(userId);
-  
-  
-    // Send email notification to the approver
-    await sendLeaveNotif(email, leaveType, firstName, lastName, startDate, endDate);
-  
-    // Revalidate the path
-    revalidatePath('/dashboard');
-    revalidatePath('/dashboard/leave');
-  
-    return { success: "Leave application successfully submitted!" };
-  };
-
-  export const ApproveLeaveRequest = async (values: z.infer<typeof ApproveLeaveSchema> & { id: string }) => {
-    const user = await currentUser();
-  
-    if (!user) {
-      return { error: "Unauthorized" };
-    }
-  
-    try {
-      const ApprovedLeave = await prisma.leave.update({
-        where: { id: values.id }, 
-        data: {
-          status: values.status,
-          approverRemarks: values.approverRemarks,
-          pmdStatus: values.pmdStatus,
-          pmdRemarks: values.pmdRemarks
-        },
-      });
-  
-      revalidatePath('/dashboard/leave/approver')
-      return { success: "Updated successfully!" };
-    } catch (error) {
-      return { error: "An error occurred while updating the leave request." };
-    }
-  };
-
-  export const fetchDepartment = async () => {
-    try {
-      const leaveData = await prisma.department.findMany({
-      });
-      return leaveData;
-    } catch (error) {
-      console.error('Error fetching leave data:', error);
-      return [];
-    }
-  };
-
-  export const fetchLeaveDataUser = async (userId: string) => {
-    try {
-      const leaveData = await prisma.leave.findMany({
-        where: { userId },
-        include: {
-          user: {
-            select: {
-              firstName: true,
-              lastName: true,
-              email: true,
-              image: true,
-              department: true
-            },
-          },
-        },
-      });
-      return leaveData;
-    } catch (error) {
-      console.error('Error fetching leave data:', error);
-      return [];
-    }
-  };
-  
-  export type UserLeaveData = Awaited<ReturnType<typeof fetchLeaveDataUser>>;
-  
-  
-  export const fetchLeaveDataUserApproved = async (userId: string) => {
-    try {
-      const leaveData = await prisma.leave.findMany({
-        where: { userId, status: 'Approved', pmdStatus: 'Approved' },
-        include: {
-          user: {
-            select: {
-              firstName: true,
-              lastName: true,
-              email: true,
-              image: true,
-              department: true
-            },
-          },
-        },
-      });
-      return leaveData;
-    } catch (error) {
-      console.error('Error fetching leave data:', error);
-      return [];
-    }
-  };
-  
-  export type UserLeaveDataApproved = Awaited<ReturnType<typeof fetchLeaveDataUserApproved>>;
-
-  export const fetchLeaveType = async () => {
-    try {
-      const leaveTypes = await prisma.leaveType.findMany({
-      });
-      return leaveTypes;
-    } catch (error) {
-      console.error('Error fetching leave data:', error);
-      return [];
-    }
-  };
-
-  export const fetchSubordinates = async (approverId: string) => {
-    try {
-      const subordinates = await prisma.user.findMany({
-        where: { approverId },
-      });
-      return subordinates;
-    } catch (error) {
-      console.error('Error fetching leave data:', error);
-      return [];
-    }
-  };
-
-  export const fetchUserApprover = async (approverId: string) => {
-    try {
-      const approvers = await prisma.user.findMany({
-        where: {
-           approverId
-        }
-      });
-      return approvers;
-    } catch (error) {
-      console.error('Error fetching leave data:', error);
-      return [];
-    }
-  };
-
-  export const fetchLeaveDataApprover = async (approverId: string) => {
-    try {
-      const leaveData = await prisma.leave.findMany({
-        where: { approverId, status: 'Pending' },
-        include: {
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              image: true,
-              department: true
-            },
-          },
-        },
-      });
-      return leaveData;
-    } catch (error) {
-      console.error('Error fetching leave data:', error);
-      return [];
-    }
-  };
-
-  export const ApprovePMDRequest = async (values: z.infer<typeof ApprovePMDSchema> & { id: string }) => {
-    const user = await currentUser();
-  
-    if (!user) {
-      return { error: "Unauthorized" };
-    }
-  
-    try {
-      const ApprovedLeave = await prisma.leave.update({
-        where: { id: values.id }, 
-        data: {
-          status: values.status,
-          pmdStatus: values.pmdStatus,
-          pmdRemarks: values.pmdRemarks
-        },
-      });
-  
-      revalidatePath('/dashboard/leave/pmd-posting')
-      return { success: "Updated successfully!" };
-    } catch (error) {
-      return { error: "An error occurred while updating the leave request." };
-    }
-  };
-
-  export const register = async (values: z.infer<typeof RegisterSchema>) => {
-    const validatedFields = RegisterSchema.safeParse(values);
-  
-    if (!validatedFields.success) {
-      return { error: "Invalid fields!" };
-    }
-  
-    const { email, password, firstName, lastName, contactNo, address, approverId, role, department } = validatedFields.data;
+    const { email, password, firstName, lastName, contactNo, address, role, } = validatedFields.data;
     const hashedPassword = await bcrypt.hash(password, 10);
   
     const existingUser = await getUserByEmail(email);
@@ -495,16 +249,14 @@ export const UploadPayslip = async (values: z.infer<typeof UploadPayslipSchema>)
       data: {
         firstName,
         lastName,
-        approverId,
         email,
-        department,
         password: hashedPassword,
         contactNo,
         address,
         role
       },
     });
-  
+
     const verificationToken = await generateVerificationToken(email);
     await sendVerificationEmail(
       verificationToken.email,
