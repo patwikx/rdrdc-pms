@@ -27,7 +27,7 @@ const groups = [
     label: "Company",
     teams: [
       {
-        label: "RDRDC & RDH HRIS",
+        label: "RD Group - Property Management System",
         value: "company",
       },
     ],

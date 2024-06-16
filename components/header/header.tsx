@@ -14,6 +14,7 @@ import { SideBarNav } from '../sidebar/sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { Badge } from '../ui/badge'
+import { ModeToggle } from '../theme-toggle'
 
 export function Headerx () {
   const user = useCurrentUser();
@@ -25,9 +26,15 @@ export function Headerx () {
   };
 
   return (
-          <DropdownMenu>
+
+    <div className='flex mr-4'>
+      <div className='mt-[-6px] mr-4'>
+      <ModeToggle />
+      </div>
+    <div className='mt-1'>
+    <DropdownMenu>
           <DropdownMenuTrigger asChild>
-  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+  <Button variant="outline" className="relative h-8 w-8 rounded-full">
     <Avatar className="h-8 w-8">
       {user?.image ? (
         <AvatarImage src={user.image} alt={`${user?.firstName} ${user?.lastName}`} />
@@ -67,6 +74,9 @@ export function Headerx () {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </div>
+    </div>
+         
   )
 }
 

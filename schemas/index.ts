@@ -1,11 +1,11 @@
 import * as z from "zod";
-import { Statuses, UserRole } from "@prisma/client";
+import { PaymentStatus, PaymentType, UserRole } from "@prisma/client";
 
 
 export const SettingsSchema = z.object({
   name: z.optional(z.string()),
   isTwoFactorEnabled: z.optional(z.boolean()),
-  role: z.enum([UserRole.Administrator, UserRole.User, UserRole.Manager, UserRole.Supervisor, UserRole.Viewer]),
+  role: z.enum([UserRole.Administrator, UserRole.Custodian, UserRole.Manager, UserRole.Supervisor, UserRole.Viewer]),
   email: z.optional(z.string().email()),
   password: z.optional(z.string().min(6)),
   newPassword: z.optional(z.string().min(6)),
@@ -68,7 +68,7 @@ export const RegisterUserSchema = z.object({
   }),
   address: z.string().optional(),
   contactNo: z.string().optional(),
-  role: z.enum([UserRole.Administrator, UserRole.User, UserRole.Manager, UserRole.Supervisor, UserRole.Viewer]).optional(),
+  role: z.enum([UserRole.Administrator, UserRole.Custodian, UserRole.Manager, UserRole.Supervisor, UserRole.Viewer]).optional(),
 });
 
 export const CreateLeaveTypeSchema = z.object({
@@ -100,11 +100,15 @@ export const CreatePropertySchema = z.object({
   province: z.string().min(1, {
     message: "Province is required."
   }),
-  zipCode: z.string().min(1, {
-    message: "Zip Code is required"
+  registeredOwner: z.string().min(1, {
+    message: "Registered Owner is required."
   }),
-  propertyImage: z.string().optional(),
-  createdBy: z.string()
+  custodianId: z.string().min(1, {
+    message: "Custodian is required."
+  }),
+  companyId: z.string().min(1, {
+    message: "Custodian is required."
+  }),
 })
 
 export const CreateLeaveSchema = z.object({
@@ -124,4 +128,31 @@ export const CreateLeaveSchema = z.object({
   userId: z.string(),
   numberOfDays: z.string().optional(),
   leaveBalance: z.string().optional(),
+})
+
+
+export const UpdateRPTSchema = z.object({
+  TaxDecNo: z.string().min(1, {
+    message: "Tax Dec No. is required."
+  }),
+  Status: z.enum([PaymentStatus.Unpaid, PaymentStatus.Paid]).optional(),
+  custodianRemarks: z.string().optional(),
+  DueDate: z.string().min(1, {
+    message: "Due Date is required."
+  }),
+  propertyId: z.string(),
+  PaymentMode: z.enum([PaymentType.Annual, PaymentType.Quarterly])
+})
+
+export const UpdatePropertySchema = z.object({
+  propertyCode: z.string().optional(),
+  propertyName: z.string().optional(),
+  titleNo: z.string().optional(),
+  lotNo: z.string().optional(),
+  registeredOwner: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  province: z.string().optional(),
+  custodianId: z.string().optional(),
+  companyId: z.string().optional()
 })

@@ -1,6 +1,6 @@
 'use server'
 
-import {  CreatePropertySchema, NewPasswordSchema, RegisterUserSchema, ResetSchema, SettingsSchema } from "@/schemas";
+import {  CreatePropertySchema, NewPasswordSchema, RegisterUserSchema, ResetSchema, SettingsSchema, UpdatePropertySchema, UpdateRPTSchema } from "@/schemas";
 import { prisma } from "@/lib/db";
 import {  getUserByEmail, getUserById } from "@/data/user";
 import {  sendPasswordResetEmail, sendVerificationEmail } from "@/lib/mail";
@@ -208,23 +208,23 @@ import { getPasswordResetTokenByToken } from "@/data/password-reset-token";
       return { error: "Invalid fields!" };
     }
   
-    const { propertyName, propertyCode, titleNo, lotNo, address, city, province, zipCode, propertyImage, createdBy } = validatedFields.data;
+    const { propertyCode, propertyName, titleNo, lotNo, registeredOwner, address, city, province, custodianId, companyId } = validatedFields.data;
   
     await prisma.property.create({
       data: {
-        propertyName,
         propertyCode,
+        propertyName,
         titleNo,
         lotNo,
+        registeredOwner,
         address,
         city,
         province,
-        zipCode,
-        propertyImage,
-        createdBy
-      },
+        custodianId,
+        companyId
+      }
     });
-    revalidatePath('/dashboard/settings')
+    revalidatePath('/dashboard/property-management')
     return { success: "Property created successfully!" };
   };
 
@@ -265,6 +265,115 @@ import { getPasswordResetTokenByToken } from "@/data/password-reset-token";
   
     return { success: "Confirmation email sent!" };
   };
+
+  export const fetchProperties = async () => {
+    try {
+      const properties = await prisma.property.findMany({
+        select: {
+          id: true,
+          propertyCode: true,
+          propertyName: true,
+          titleNo: true,
+          lotNo: true,
+          registeredOwner: true,
+          address: true,
+          city: true,
+          province: true,
+          company: true,
+          custodian: true
+        }
+      });
+      return properties;
+    } catch (error) {
+      console.error('Error fetching leave data:', error);
+      return [];
+    }
+  };
   
+
+  export const fetchCompanies = async () => {
+    try {
+      const companies = await prisma.company.findMany({
+        select: {
+          companyName: true
+        }
+      });
+      return companies;
+    } catch (error) {
+      console.error('Error fetching leave data:', error);
+      return [];
+    }
+  };
+
+  export const fetchCustodians = async () => {
+    try {
+      const companies = await prisma.user.findMany({
+        where: {
+          role: 'Custodian'
+        }
+      });
+      return companies;
+    } catch (error) {
+      console.error('Error fetching leave data:', error);
+      return [];
+    }
+  };
   
+  export const UpdateRPT = async (values: z.infer<typeof UpdateRPTSchema> & { id: string }) => {
+    const user = await currentUser();
+  
+    if (!user) {
+      return { error: "Unauthorized" };
+    }
+  
+    try {
+      const updateRPTx = await prisma.rPT.update({
+        where: { id: values.id }, 
+        data: {
+          TaxDecNo: values.TaxDecNo,
+          PaymentMode: values.PaymentMode,
+          DueDate: values.DueDate,
+          custodianRemarks: values.custodianRemarks
+  
+        },
+      });
+  
+      revalidatePath('/dashboard/property-management')
+      return { success: "Updated successfully!" };
+    } catch (error) {
+      return { error: "An error occurred while updating the leave request." };
+    }
+  };
+
+  export const UpdateProperty = async (values: z.infer<typeof UpdatePropertySchema> & { id: string }) => {
+    const user = await currentUser();
+  
+    if (!user) {
+      return { error: "Unauthorized" };
+    }
+  
+    try {
+      const updatePropertyx = await prisma.property.update({
+        where: { id: values.id }, 
+        data: {
+          propertyCode: values.propertyCode,
+          propertyName: values.propertyName,
+          titleNo: values.titleNo,
+          lotNo: values.lotNo,
+          registeredOwner: values.registeredOwner,
+          address: values.address,
+          city: values.city,
+          province: values.province,
+          custodianId: values.custodianId,
+          companyId: values.companyId
+  
+        },
+      });
+  
+      revalidatePath('/dashboard/property-management/components')
+      return { success: "Updated successfully!" };
+    } catch (error) {
+      return { error: "An error occurred while updating the property." };
+    }
+  };
   

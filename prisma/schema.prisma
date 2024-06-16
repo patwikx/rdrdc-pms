@@ -1,4 +1,4 @@
-// prisma/schema.prisma
+
 datasource db {
   provider  = "postgresql"
   url  	    = env("DATABASE_URL")
@@ -13,15 +13,24 @@ enum UserRole {
   Administrator
   Manager
   Supervisor
-  User
+  Custodian
   Viewer
 }
-
 
 enum Statuses {
   Occupied
   Vacant
   Maintenance
+}
+
+enum PaymentType {
+  Quarterly
+  Annual
+}
+
+enum PaymentStatus {
+  Unpaid
+  Paid
 }
 
 model User {
@@ -34,7 +43,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          UserRole? @default(User)
+  role          UserRole? @default(Viewer)
   department    String?
   accounts      Account[]
   isTwoFactorEnabled Boolean @default(false)
@@ -42,9 +51,7 @@ model User {
   createdAt     DateTime @default(now())
   deletedAt     DateTime?
   updatedAt     DateTime @updatedAt
-  properties    Property[]
-  units         Unit[]
-  tenants       Tenant[]
+  property      Property[]
 }
 
 model Property {
@@ -53,64 +60,55 @@ model Property {
   propertyName  String
   titleNo       String
   lotNo         String
+  registeredOwner String
   address       String
   city          String
   province      String
-  zipCode       String
-  propertyImage String?
-  createdBy     String?
-  users         User? @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now())
-  deletedAt     DateTime?
-  lastUpdate    DateTime?
   updatedBy     String?
-  units         Unit[]
+  custodianId   String?
+  custodian     User? @relation(fields: [custodianId], references: [id], onDelete: Cascade)
+  companyId     String
+  company       Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  rpt           RPT[]
+  attachments   Attachments[]
 }
 
-model Unit {
+model RPT {
   id            String @id @default(cuid())
-  unitCode      String
-  unitName      String
-  unitStatus    Statuses @default(Vacant)
-  gFloorArea    Float?
-  mezFloor      Float?
-  secFloor      Float?
-  thirdFloor    Float?
-  roofTop       Float?
-  totalArea     Float
-  unitImage     String?
-  createdBy     String?
-  users         User? @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  TaxDecNo      String
+  PaymentMode   PaymentType
+  DueDate       String
+  Status        PaymentStatus
+  custodianRemarks String
   createdAt     DateTime @default(now())
+  updatedBy     String
   deletedAt     DateTime?
-  lastUpdate    DateTime?
-  updatedBy     String?
   propertyId    String
   property      Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  tenants       Tenant[]
+  attachments   Attachments[]
 }
 
-model Tenant {
+model Company {
   id            String @id @default(cuid())
-  tenantCode    String
-  tenantName    String
-  tenantEmail   String
-  tenantImage   String
-  contactNo     String?
-  address       String?
-  city          String?
-  zipCode       String?
+  companyName   String
+  address       String
+  image         String?
   createdAt     DateTime @default(now())
-  createdBy     String?
-  users         User? @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  deletedAt     DateTime?
-  lastUpdate    DateTime?
-  updatedBy     String?
-  unitId        String
-  units         Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  updatedBy     String
+  property      Property[]
 }
 
-
+model Attachments {
+  id            String @id @default(cuid())
+  files         String
+  createdAt     DateTime @default(now())
+  createdBy     String
+  propertyId    String?
+  property      Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  rptId         String?
+  rpt           RPT? @relation(fields: [rptId], references: [id], onDelete: Cascade)
+}
 
 
 model Account {
