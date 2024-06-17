@@ -47,9 +47,7 @@ export async function GET() {
       status: 'success',
       properties,
     }, {
-      headers: {
-        'Cache-Control': 'no-store', // Disable caching
-      }
+    
     });
   } catch (error) {
     return NextResponse.json({
