@@ -132,16 +132,17 @@ export const CreateLeaveSchema = z.object({
 
 
 export const UpdateRPTSchema = z.object({
+  id: z.string().optional(),
   TaxDecNo: z.string().min(1, {
     message: "Tax Dec No. is required."
   }),
-  Status: z.enum([PaymentStatus.Unpaid, PaymentStatus.Paid]).optional(),
-  custodianRemarks: z.string().optional(),
+  Status: z.enum([PaymentStatus.Unpaid, PaymentStatus.Paid]),
+  custodianRemarks: z.string(),
   DueDate: z.string().min(1, {
     message: "Due Date is required."
   }),
-  propertyId: z.string(),
-  PaymentMode: z.enum([PaymentType.Annual, PaymentType.Quarterly])
+  PaymentMode: z.enum([PaymentType.Annual, PaymentType.Quarterly]),
+  updatedBy: z.string().optional(),
 })
 
 export const UpdatePropertySchema = z.object({
@@ -155,4 +156,20 @@ export const UpdatePropertySchema = z.object({
   province: z.string().optional(),
   custodianId: z.string().optional(),
   companyId: z.string().optional()
+})
+
+export const CreateRPTSchema = z.object({
+  TaxDecNo: z.string().min(1, {
+    message: "Tax Dec No. is requried."
+  }),
+  DueDate: z.string().min(1, {
+    message: "Due Date is required. "
+  }),
+  PaymentMode: z.enum([PaymentType.Annual, PaymentType.Quarterly]),
+  Status: z.enum([PaymentStatus.Paid, PaymentStatus.Unpaid]),
+  custodianRemarks: z.string().min(1, {
+    message: "Remarks is required."
+  }),
+  propertyId: z.string(),
+  updatedBy: z.string()
 })

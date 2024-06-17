@@ -1,6 +1,6 @@
 'use server'
 
-import {  CreatePropertySchema, NewPasswordSchema, RegisterUserSchema, ResetSchema, SettingsSchema, UpdatePropertySchema, UpdateRPTSchema } from "@/schemas";
+import {  CreatePropertySchema, CreateRPTSchema, NewPasswordSchema, RegisterUserSchema, ResetSchema, SettingsSchema, UpdatePropertySchema, UpdateRPTSchema } from "@/schemas";
 import { prisma } from "@/lib/db";
 import {  getUserByEmail, getUserById } from "@/data/user";
 import {  sendPasswordResetEmail, sendVerificationEmail } from "@/lib/mail";
@@ -12,6 +12,7 @@ import bcrypt from "bcryptjs";
 import { update } from "@/auth";
 import { getVerificationTokenByToken } from "@/data/verificiation-token";
 import { getPasswordResetTokenByToken } from "@/data/password-reset-token";
+import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
 
 
   export const settings = async (
@@ -319,7 +320,8 @@ import { getPasswordResetTokenByToken } from "@/data/password-reset-token";
     }
   };
   
-  export const UpdateRPT = async (values: z.infer<typeof UpdateRPTSchema> & { id: string }) => {
+  
+  export const UpdateRPT = async (values: Prisma.RPTUpsertArgs['create']) => {
     const user = await currentUser();
   
     if (!user) {
@@ -327,23 +329,45 @@ import { getPasswordResetTokenByToken } from "@/data/password-reset-token";
     }
   
     try {
-      const updateRPTx = await prisma.rPT.update({
-        where: { id: values.id }, 
-        data: {
-          TaxDecNo: values.TaxDecNo,
-          PaymentMode: values.PaymentMode,
-          DueDate: values.DueDate,
-          custodianRemarks: values.custodianRemarks
-  
-        },
+      const existingRPT = await prisma.rPT.findUnique({
+        where: { id: values.id },
       });
   
-      revalidatePath('/dashboard/property-management')
-      return { success: "Updated successfully!" };
+      if (!existingRPT) {
+        // If no existing RPT found, create a new one
+        const newRPT = await prisma.rPT.create({
+          data: {
+            ...values, // Include all fields from values
+          },
+        });
+  
+        revalidatePath('/dashboard/property-management'); // Perform any necessary revalidation
+  
+        return { success: "RPT created successfully!" };
+      } else {
+        // If existing RPT found, update it
+        const updatedRPT = await prisma.rPT.update({
+          where: { id: values.id },
+          data: {
+            TaxDecNo: values.TaxDecNo,
+            PaymentMode: values.PaymentMode as PaymentType,
+            DueDate: values.DueDate,
+            Status: values.Status as PaymentStatus,
+            custodianRemarks: values.custodianRemarks,
+            updatedBy: values.updatedBy,
+          },
+        });
+  
+        revalidatePath('/dashboard/property-management'); // Perform any necessary revalidation
+  
+        return { success: "RPT updated successfully!" };
+      }
     } catch (error) {
-      return { error: "An error occurred while updating the leave request." };
+      console.error("Error updating or creating RPT:", error);
+      return { error: "An error occurred while updating or creating the RPT details." };
     }
   };
+
 
   export const UpdateProperty = async (values: z.infer<typeof UpdatePropertySchema> & { id: string }) => {
     const user = await currentUser();
@@ -377,3 +401,45 @@ import { getPasswordResetTokenByToken } from "@/data/password-reset-token";
     }
   };
   
+
+  export const createRPT = async (values: z.infer<typeof CreateRPTSchema>) => {
+    try {
+      const validatedFields = CreateRPTSchema.safeParse(values);
+  
+      if (!validatedFields.success) {
+        return { error: "Invalid fields!" };
+      }
+  
+      const { TaxDecNo, PaymentMode, Status, DueDate, propertyId, updatedBy, custodianRemarks } = validatedFields.data;
+  
+      // Check if there is already an RPT record with the same propertyId
+      const existingRPT = await prisma.rPT.findFirst({
+        where: {
+          propertyId: propertyId
+        }
+      });
+  
+      if (existingRPT) {
+        return { error: "RPT details already exists for this property!" };
+      }
+  
+      // Create the new RPT details
+      await prisma.rPT.create({
+        data: {
+          TaxDecNo,
+          PaymentMode,
+          Status,
+          DueDate,
+          propertyId,
+          updatedBy,
+          custodianRemarks
+        }
+      });
+  
+      revalidatePath('/dashboard/property-management');
+      return { success: "RPT Details created successfully!" };
+    } catch (error) {
+      console.error("Error creating RPT:", error);
+      return { error: "An error occurred while creating the RPT details." };
+    }
+  };

@@ -30,11 +30,13 @@ export async function GET() {
         },
         rpt : {
           select: {
+            id: true,
             TaxDecNo: true,
             PaymentMode: true,
             DueDate: true,
             Status: true,
-            custodianRemarks: true
+            custodianRemarks: true,
+            updatedBy: true,  
           }
         }
       },
@@ -44,6 +46,10 @@ export async function GET() {
     return NextResponse.json({
       status: 'success',
       properties,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store', // Disable caching
+      }
     });
   } catch (error) {
     return NextResponse.json({

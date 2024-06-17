@@ -82,10 +82,10 @@ model RPT {
   Status        PaymentStatus
   custodianRemarks String
   createdAt     DateTime @default(now())
-  updatedBy     String
+  updatedBy     String?
   deletedAt     DateTime?
-  propertyId    String
-  property      Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId    String?
+  property      Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   attachments   Attachments[]
 }
 

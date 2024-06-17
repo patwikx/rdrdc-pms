@@ -21,6 +21,8 @@ const RPTSchema = z.object({
   DueDate: z.string(),
   Status: z.enum([PaymentStatus.Paid, PaymentStatus.Unpaid]),
   custodianRemarks: z.string(),
+  updatedBy: z.string().optional(),
+  propertyId: z.string()
 })
 
 export const propertySchema = z.object({
@@ -35,7 +37,7 @@ export const propertySchema = z.object({
   province: z.string(),
   company: companySchema,
   custodian: userSchema,
-  rpt: RPTSchema
+  rpt: z.array(RPTSchema)
 });
 
 export type Properties = z.infer<typeof propertySchema>;

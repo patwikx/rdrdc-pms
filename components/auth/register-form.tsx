@@ -170,7 +170,7 @@ export const RegisterForm = () => {
                                 <SelectValue placeholder="Select role..." />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value={UserRole.User}>User</SelectItem>
+                                <SelectItem value={UserRole.Custodian}>User</SelectItem>
                                 <SelectItem value={UserRole.Manager}>Manager</SelectItem>
                                 <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
                                 <SelectItem value={UserRole.Viewer}>Viewer</SelectItem>
