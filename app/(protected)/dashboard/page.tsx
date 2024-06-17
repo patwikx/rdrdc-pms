@@ -15,6 +15,7 @@ import { CreatePropertyForm } from './test-page/_functions/create-property'
 import PropertyManagementPage from './property-management/page'
 import PropertyTable from './property-management/components/tables'
 
+
 const DashboardPage = () => {
   return (
     <div className="grid h-screen w-full">
