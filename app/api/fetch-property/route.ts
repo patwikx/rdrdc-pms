@@ -45,9 +45,7 @@ export async function GET() {
     // Return the fetched properties with the company information
     return NextResponse.json({
       status: 'success',
-      properties,
-    }, {
-    
+      properties,    
     });
   } catch (error) {
     return NextResponse.json({
