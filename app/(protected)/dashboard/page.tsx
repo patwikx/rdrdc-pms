@@ -13,11 +13,13 @@ import { ChevronLeft, ChevronRight, Copy, CreditCard, File, ListFilter, MoreVert
 import React from 'react'
 import { CreatePropertyForm } from './test-page/_functions/create-property'
 import PropertyManagementPage from './property-management/page'
+import PropertyTable from './property-management/components/tables'
 
 const DashboardPage = () => {
   return (
     <div className="grid h-screen w-full">
-      <PropertyManagementPage />
+      <PropertyTable />
+      
     </div>
   )
 }

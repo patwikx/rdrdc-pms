@@ -98,7 +98,7 @@ export default async function PropertyManagementPage() {
             <TabsContent value="allProperties" className="space-y-4 mt-[-20px]">
             <div className="flex gap-2 md:grid-cols-2 mb-[-20px]">
               <div className="w-full">
-                 <PropertyTable />
+                
               </div>
               </div>
             </TabsContent>

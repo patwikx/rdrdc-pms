@@ -1,5 +1,5 @@
 
-import { Suspense, useEffect, useState, } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -8,26 +8,36 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { DataTable } from './data-table';
 import { columns } from './columns';
 
-
 export default function PropertyTable() {
-
-  const user = useCurrentUser();
   const [properties, setProperties] = useState([]);
+  const user = useCurrentUser();
 
-  useEffect(() => {
-    fetch('/api/fetch-property')
+  // Function to fetch properties data
+  const fetchProperties = () => {
+    axios.get('/api/fetch-property')
       .then((response) => {
-        if (!response.ok) {
+        if (response.status !== 200) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return response.json();
+        return response.data;
       })
       .then((data) => setProperties(data.properties))
-      .catch(() =>
-        toast.error('An error occurred while fetching approvers. Please try again.')
-      );
+      .catch((error) => {
+        toast.error('An error occurred while fetching properties. Please try again.');
+      });
+  };
+
+  // Fetch properties data initially and on component mount
+  useEffect(() => {
+    fetchProperties();
   }, []);
- 
+
+  // Periodically refetch data (every 5 minutes)
+  useEffect(() => {
+    const interval = setInterval(fetchProperties,  3 * 1000); // Fetch every 5 minutes
+
+    return () => clearInterval(interval); // Cleanup interval on unmount
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
