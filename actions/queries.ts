@@ -394,7 +394,7 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
         },
       });
   
-      revalidatePath('/dashboard/property-management/components')
+      revalidatePath('/dashboard')
       return { success: "Updated successfully!" };
     } catch (error) {
       return { error: "An error occurred while updating the property." };
@@ -436,7 +436,7 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
         }
       });
   
-      revalidatePath('/dashboard/property-management');
+      revalidatePath('/dashboard');
       return { success: "RPT Details created successfully!" };
     } catch (error) {
       console.error("Error creating RPT:", error);
