@@ -5,8 +5,9 @@ import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Mail, fetchCompanies } from "../data"
+import { Mail } from "../data"
 import { useMail } from "../use-mail"
+import { fetchCompanies } from "@/actions/queries"
 
 
 interface MailListProps {
