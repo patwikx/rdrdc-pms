@@ -15,7 +15,7 @@ export default function PropertyTable() {
   const [properties, setProperties] = useState([]);
 
   useEffect(() => {
-    fetch('/api/fetch-property')
+    fetch('/api/fetch-property', { cache: 'no-store' }) 
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

@@ -18,8 +18,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <SessionProvider session={session}>
       <div>
-      <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} w-full h-full`}>
         <Toaster />
         <TooltipProvider>
         <ThemeProvider
@@ -32,8 +30,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
             {children}
         </ThemeProvider>
         </TooltipProvider>
-      </body>
-    </html>
       </div>
     
     </SessionProvider>
