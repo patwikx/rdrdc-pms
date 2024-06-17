@@ -8,7 +8,7 @@ export const admin = async () => {
 
   if (role === UserRole.Administrator) {
     return { redirect: "/admin-dashboard" };
-  } else if (role === UserRole.User) {
+  } else if (role === UserRole.Custodian) {
     return { redirect: "/staff-dashboard" };
   }
 
