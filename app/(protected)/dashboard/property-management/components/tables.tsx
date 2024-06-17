@@ -4,8 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import axios from 'axios'; // Import Axios
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, CheckCheckIcon, Hourglass, Trash } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { DataTable } from './data-table';
 import { columns } from './columns';
 
