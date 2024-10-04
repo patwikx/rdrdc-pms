@@ -1,28 +1,62 @@
-'use client'
-
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
-import { Progress } from '@/components/ui/progress'
-import { Separator } from '@/components/ui/separator'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ChevronLeft, ChevronRight, Copy, CreditCard, File, ListFilter, MoreVertical, Truck } from 'lucide-react'
-import React from 'react'
-import { CreatePropertyForm } from './test-page/_functions/create-property'
-import PropertyManagementPage from './property-management/page'
-import PropertyTable from './property-management/components/tables'
+"use client"
 
 
-const DashboardPage = () => {
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { Home, LayoutDashboard, LogOut, Moon, Settings, Sun, Users } from 'lucide-react'
+import { useTheme } from 'next-themes'
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Sidebar from '@/components/sidebar/page'
+import Header from '@/components/header/page'
+import DashboardForm from './components/dashboard-page'
+import Footer from '@/components/footer/footer'
+
+const data = [
+  {
+    name: 'Jan',
+    total: Math.floor(Math.random() * 5000) + 1000,
+  },
+  {
+    name: 'Feb',
+    total: Math.floor(Math.random() * 5000) + 1000,
+  },
+  {
+    name: 'Mar',
+    total: Math.floor(Math.random() * 5000) + 1000,
+  },
+  {
+    name: 'Apr',
+    total: Math.floor(Math.random() * 5000) + 1000,
+  },
+  {
+    name: 'May',
+    total: Math.floor(Math.random() * 5000) + 1000,
+  },
+  {
+    name: 'Jun',
+    total: Math.floor(Math.random() * 5000) + 1000,
+  },
+]
+
+export default function Dashboard() {
+
   return (
-    <div className="grid h-screen w-full">
-      <PropertyTable />
-      
+    <div className="flex h-screen bg-background">
+      {/* Sidebar */}
+      <Sidebar />
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto">
+        <Header />
+      <DashboardForm />
+      </main>
     </div>
+
   )
 }
-
-export default DashboardPage

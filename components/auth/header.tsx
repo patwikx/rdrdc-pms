@@ -24,7 +24,7 @@ export const Header = ({
         "text-3xl font-semibold",
         font.className,
       )}>
-       RD Group - Property Management System
+       RDRDC Property Management System
       </h1>
       <p className="text-muted-foreground text-sm">
         {label}

@@ -30,13 +30,20 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 
 import { register } from "@/actions/queries";
 import { Card, CardContent, CardHeader } from "../ui/card";
+import {
+  Dialog,
+  DialogHeader,
+  DialogTrigger,
+  DialogTitle,
+  DialogDescription,
+  DialogContent,
+} from "../ui/dialog";
 
 export const RegisterForm = () => {
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
   const user = useCurrentUser();
-
 
   const form = useForm<z.infer<typeof RegisterUserSchema>>({
     resolver: zodResolver(RegisterUserSchema),
@@ -59,7 +66,7 @@ export const RegisterForm = () => {
         .then((data) => {
           setError(data.error);
           setSuccess(data.success);
-          
+
           if (!data.error) {
             form.reset();
           }
@@ -74,11 +81,15 @@ export const RegisterForm = () => {
   };
 
   return (
-        <Card>
-          <CardHeader className="font-semibold font-2xl">
-            Create System User
-          </CardHeader>
-          <CardContent>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>Add New User</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create System User</DialogTitle>
+          <DialogDescription>Fill in the details below:</DialogDescription>
+        </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex flex-col space-y-4">
@@ -146,78 +157,75 @@ export const RegisterForm = () => {
                   </FormItem>
                 )}
               />
-              
 
               <div className="flex w-full space-x-4">
                 <div className="w-1/2">
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-semibold">Role</FormLabel>
-                      <FormControl>
-                        <Controller
-                          name="role"
-                          control={form.control}
-                          render={({ field }) => (
-                            <Select
-                              value={field.value}
-                              onValueChange={field.onChange}
-                              disabled={isPending}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select role..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value={UserRole.Custodian}>User</SelectItem>
-                                <SelectItem value={UserRole.Manager}>Manager</SelectItem>
-                                <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
-                                <SelectItem value={UserRole.Viewer}>Viewer</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                </div>  
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-semibold">Role</FormLabel>
+                        <FormControl>
+                          <Controller
+                            name="role"
+                            control={form.control}
+                            render={({ field }) => (
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                disabled={isPending}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select role..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value={UserRole.Custodian}>User</SelectItem>
+                                  <SelectItem value={UserRole.Manager}>Manager</SelectItem>
+                                  <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
+                                  <SelectItem value={UserRole.Viewer}>Viewer</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
               <div className="flex w-full space-x-4">
                 <div className="w-1/2">
-                <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-semibold">Address</FormLabel>
-                      <FormControl>
-                        <Input {...field} disabled={isPending} placeholder="Complete address.." />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-semibold">Address</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled={isPending} placeholder="Complete address.." />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
                 <div className="w-1/2">
-                <FormField
-                  control={form.control}
-                  name="contactNo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-semibold">Contact No.</FormLabel>
-                      <FormControl>
-                        <Input {...field} disabled={isPending} placeholder="Contact number.." />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="contactNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-semibold">Contact No.</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled={isPending} placeholder="Contact number.." />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-                
-                
               </div>
             </div>
             <FormError message={error} />
@@ -227,7 +235,7 @@ export const RegisterForm = () => {
             </Button>
           </form>
         </Form>
-        </CardContent>
-        </Card>
+      </DialogContent>
+    </Dialog>
   );
 };

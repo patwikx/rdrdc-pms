@@ -1,18 +1,18 @@
 import Header from '@/components/header/page'
 import Sidebar from '@/components/sidebar/page'
 import React from 'react'
-import SettingsForm from './components/settings-form'
+import LeaseForm from './components/lease-form'
 
-const SettingsPage = () => {
+const LeasePage = () => {
   return (
     <div className='flex h-screen bg-background'>
       <Sidebar />
       <main className='flex-1 overflow-y-auto'>
       <Header />
-      <SettingsForm />
+      <LeaseForm />
       </main>
       </div>
   )
 }
 
-export default SettingsPage
+export default LeasePage
