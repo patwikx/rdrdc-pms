@@ -1,45 +1,40 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
+import { NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
-    const {
-      propertyCode,
-      propertyName,
-      titleNo,
-      lotNo,
-      registeredOwner,
-      address,
-      city,
-      province,
-      propertyType,
-    } = req.body;
+export async function POST(req: Request) {
+  const {
+    propertyCode,
+    propertyName,
+    titleNo,
+    lotNo,
+    registeredOwner,
+    address,
+    city,
+    province,
+    propertyType,
+  } = await req.json(); // Use await to parse JSON from the request
 
-    try {
-      // Create the property
-      const property = await prisma.property.create({
-        data: {
-          propertyCode,
-          propertyName,
-          titleNo,
-          lotNo,
-          registeredOwner,
-          address,
-          city,
-          province,
-          propertyType,
-        },
-      });
-      return res.status(201).json({
-        property,
-      });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: 'An error occurred while creating the property and related records.' });
-    }
-  } else {
-    return res.setHeader('Allow', ['POST']).status(405).end(`Method ${req.method} Not Allowed`);
+  try {
+    // Create the property
+    const property = await prisma.property.create({
+      data: {
+        propertyCode,
+        propertyName,
+        titleNo,
+        lotNo,
+        registeredOwner,
+        address,
+        city,
+        province,
+        propertyType,
+      },
+    });
+    return NextResponse.json({ property }, { status: 201 }); // Use NextResponse.json to send the response
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'An error occurred while creating the property and related records.' }, { status: 500 });
   }
 }
