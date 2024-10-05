@@ -16,6 +16,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import Image from 'next/image';
 import { Property, Space } from '@/types/type';
 
+export const revalidate = 0;
 
 const PropertyList = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
