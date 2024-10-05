@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db'; // assuming prisma is set up correctly
 
+export const revalidate = 0
+
 export async function GET() {
   try {
     const properties = await prisma.property.findMany({
