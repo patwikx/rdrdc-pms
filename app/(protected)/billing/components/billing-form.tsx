@@ -99,7 +99,7 @@ export function BillingManagement() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalDue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">₱{totalDue.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">+2.1% from last month</p>
           </CardContent>
         </Card>
@@ -186,7 +186,7 @@ export function BillingManagement() {
                   <TableCell>{tenant.name}</TableCell>
                   <TableCell>{tenant.unit}</TableCell>
                   <TableCell>{tenant.dueDate}</TableCell>
-                  <TableCell>${tenant.amountDue.toFixed(2)}</TableCell>
+                  <TableCell>₱{tenant.amountDue.toFixed(2)}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold
                       ${tenant.status === 'Paid' ? 'bg-green-100 text-green-800' :
@@ -307,8 +307,8 @@ export function BillingManagement() {
                   <CardTitle>Late Payments</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <p>A late fee of $50 is applied for payments received after the 5th of the month.</p>
-                  <p>Additional $10 per day fee for payments received after the 10th of the month.</p>
+                  <p>A late fee of ₱500.00 is applied for payments received after the 5th of the month.</p>
+                  <p>Additional ₱100.00 per day fee for payments received after the 10th of the month.</p>
                   <p>Eviction process may begin for payments more than 30 days late.</p>
                 </CardContent>
               </Card>

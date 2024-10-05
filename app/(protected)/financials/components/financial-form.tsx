@@ -242,7 +242,7 @@ const FinancialForms = () => {
                           <TableCell>{transaction.date}</TableCell>
                           <TableCell>{transaction.description}</TableCell>
                           <TableCell className={transaction.type === 'Income' ? 'text-green-600' : 'text-red-600'}>
-                            ${Math.abs(transaction.amount).toFixed(2)}
+                          ₱{Math.abs(transaction.amount).toFixed(2)}
                           </TableCell>
                           <TableCell>{transaction.type}</TableCell>
                         </TableRow>
