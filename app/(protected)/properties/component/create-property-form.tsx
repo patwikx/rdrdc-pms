@@ -38,6 +38,8 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 
+export const revalidate = 0;
+
 export const CreatePropertyForm = () => {
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");

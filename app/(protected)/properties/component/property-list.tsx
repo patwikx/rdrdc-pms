@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Building, Search, MapPin, LandPlot } from 'lucide-react';
-import { CreatePropertyForm } from './register-form';
+import { CreatePropertyForm } from './create-property-form';
 import axios from 'axios';
 import { Badge } from '@/components/ui/badge';
 import PropertyLoadingSkeleton from '@/components/skeleton';
