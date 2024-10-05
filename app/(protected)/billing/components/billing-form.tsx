@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -82,60 +83,66 @@ export function BillingManagement() {
   const pendingPayments = tenants.filter(tenant => tenant.status === 'Pending').length
   const totalTenants = tenants.length
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100
+      }
+    }
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center mt-[-20px]">
+    <motion.div 
+      className="space-y-6"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      <motion.div className="flex justify-between items-center mt-[-20px]" variants={itemVariants}>
         <h1 className="text-3xl font-bold">Billing Management</h1>
         <Button>
           <FileText className="mr-2 h-4 w-4" />
           Generate Report
         </Button>
-      </div>
+      </motion.div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Due</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₱{totalDue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">+2.1% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Overdue Tenants</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{overdueTenants}</div>
-            <p className="text-xs text-muted-foreground">{((overdueTenants / totalTenants) * 100).toFixed(1)}% of total tenants</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingPayments}</div>
-            <p className="text-xs text-muted-foreground">{((pendingPayments / totalTenants) * 100).toFixed(1)}% of total tenants</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Tenants</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalTenants}</div>
-            <p className="text-xs text-muted-foreground">+3 new this month</p>
-          </CardContent>
-        </Card>
-      </div>
+      <motion.div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" variants={containerVariants}>
+        {[
+          { title: "Total Due", value: `₱${totalDue.toFixed(2)}`, icon: DollarSign, subtext: "+2.1% from last month" },
+          { title: "Overdue Tenants", value: overdueTenants, icon: AlertTriangle, subtext: `${((overdueTenants / totalTenants) * 100).toFixed(1)}% of total tenants` },
+          { title: "Pending Payments", value: pendingPayments, icon: Calendar, subtext: `${((pendingPayments / totalTenants) * 100).toFixed(1)}% of total tenants` },
+          { title: "Total Tenants", value: totalTenants, icon: Users, subtext: "+3 new this month" },
+        ].map((item, index) => (
+          <motion.div key={index} variants={itemVariants}>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+                <item.icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{item.value}</div>
+                <p className="text-xs text-muted-foreground">{item.subtext}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </motion.div>
 
-      <div className="flex justify-between items-center">
+      <motion.div className="flex justify-between items-center" variants={itemVariants}>
         <div className="flex items-center space-x-2">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
@@ -162,160 +169,172 @@ export function BillingManagement() {
             More Filters
           </Button>
         </div>
-      </div>
+      </motion.div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Tenant Billing Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Unit</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Amount Due</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredTenants.map((tenant) => (
-                <TableRow key={tenant.id}>
-                  <TableCell>{tenant.name}</TableCell>
-                  <TableCell>{tenant.unit}</TableCell>
-                  <TableCell>{tenant.dueDate}</TableCell>
-                  <TableCell>₱{tenant.amountDue.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                      ${tenant.status === 'Paid' ? 'bg-green-100 text-green-800' :
-                        tenant.status === 'Overdue' ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'}`}>
-                      {tenant.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button size="sm" onClick={() => handleTransaction(tenant)}>
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            Transact
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                          <DialogHeader>
-                            <DialogTitle>Process Payment for {selectedTenant?.name}</DialogTitle>
-                            <DialogDescription>
-                              Enter the payment details below.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="amount" className="text-right">
-                                Amount
-                              </Label>
-                              <Input
-                                id="amount"
-                                defaultValue={selectedTenant?.amountDue.toFixed(2)}
-                                className="col-span-3"
-                              />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="paymentMethod" className="text-right">
-                                Payment Method
-                              </Label>
-                              <Select defaultValue="credit_card">
-                                <SelectTrigger className="col-span-3">
-                                  <SelectValue placeholder="Select payment method" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="credit_card">Credit Card</SelectItem>
-                                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                                  <SelectItem value="cash">Cash</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button type="submit">Process Payment</Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                      <Button size="sm" variant="outline" onClick={() => handleEmailBilling(tenant.id)}>
-                        <Mail className="mr-2 h-4 w-4" />
-                        Email
-                      </Button>
-                    </div>
-                  </TableCell>
+      <motion.div variants={itemVariants}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Tenant Billing Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Unit</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Amount Due</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                <AnimatePresence>
+                  {filteredTenants.map((tenant) => (
+                    <motion.tr
+                      key={tenant.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <TableCell>{tenant.name}</TableCell>
+                      <TableCell>{tenant.unit}</TableCell>
+                      <TableCell>{tenant.dueDate}</TableCell>
+                      <TableCell>₱{tenant.amountDue.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold
+                          ${tenant.status === 'Paid' ? 'bg-green-100 text-green-800' :
+                            tenant.status === 'Overdue' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'}`}>
+                          {tenant.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button size="sm" onClick={() => handleTransaction(tenant)}>
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                Transact
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[425px]">
+                              <DialogHeader>
+                                <DialogTitle>Process Payment for {selectedTenant?.name}</DialogTitle>
+                                <DialogDescription>
+                                  Enter the payment details below.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="amount" className="text-right">
+                                    Amount
+                                  </Label>
+                                  <Input
+                                    id="amount"
+                                    defaultValue={selectedTenant?.amountDue.toFixed(2)}
+                                    className="col-span-3"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                  <Label htmlFor="paymentMethod" className="text-right">
+                                    Payment Method
+                                  </Label>
+                                  <Select defaultValue="credit_card">
+                                    <SelectTrigger className="col-span-3">
+                                      <SelectValue placeholder="Select payment method" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="credit_card">Credit Card</SelectItem>
+                                      <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                                      <SelectItem value="cash">Cash</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <Button type="submit">Process Payment</Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                          <Button size="sm" variant="outline" onClick={() => handleEmailBilling(tenant.id)}>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Email
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="outline">Billing Process Information</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[625px]">
-          <DialogHeader>
-            <DialogTitle>Tenant Billing Process</DialogTitle>
-            <DialogDescription>
-              Understanding the billing cycle and payment process for tenants.
-            </DialogDescription>
-          </DialogHeader>
-          <Tabs defaultValue="cycle">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="cycle">Billing Cycle</TabsTrigger>
-              <TabsTrigger value="methods">Payment Methods</TabsTrigger>
-              <TabsTrigger value="late">Late Payments</TabsTrigger>
-            </TabsList>
-            <TabsContent value="cycle">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Billing Cycle</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <p>Rent is due on the 1st of each month.</p>
-                  <p>Grace period extends until the 5th of each month.</p>
-                  <p>Statements are sent out on the 25th of the previous month.</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="methods">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment Methods</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <p>We accept the following payment methods:</p>
-                  <ul className="list-disc list-inside">
-                    <li>Credit Card (Visa, MasterCard, American Express)</li>
-                    <li>Bank Transfer (ACH)</li>
-                    <li>Check</li>
-                    <li>Cash (in person at the office only)</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="late">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Late Payments</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <p>A late fee of ₱500.00 is applied for payments received after the 5th of the month.</p>
-                  <p>Additional ₱100.00 per day fee for payments received after the 10th of the month.</p>
-                  <p>Eviction process may begin for payments more than 30 days late.</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
-    </div>
+      <motion.div variants={itemVariants}>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline">Billing Process Information</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[625px]">
+            <DialogHeader>
+              <DialogTitle>Tenant Billing Process</DialogTitle>
+              <DialogDescription>
+                Understanding the billing cycle and payment process for tenants.
+              </DialogDescription>
+            </DialogHeader>
+            <Tabs defaultValue="cycle">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="cycle">Billing Cycle</TabsTrigger>
+                <TabsTrigger value="methods">Payment Methods</TabsTrigger>
+                <TabsTrigger value="late">Late Payments</TabsTrigger>
+              </TabsList>
+              <TabsContent value="cycle">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Billing Cycle</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <p>Rent is due on the 1st of each month.</p>
+                    <p>Grace period extends until the 5th of each month.</p>
+                    <p>Statements are sent out on the 25th of the previous month.</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="methods">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Payment Methods</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <p>We accept the following payment methods:</p>
+                    <ul className="list-disc list-inside">
+                      <li>Credit Card (Visa, MasterCard, American Express)</li>
+                      <li>Bank Transfer (ACH)</li>
+                      <li>Check</li>
+                      <li>Cash (in person at the office only)</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="late">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Late Payments</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <p>A late fee of ₱500.00 is applied for payments received after the 5th of the month.</p>
+                    <p>Additional ₱100.00 per day fee for payments received after the 10th of the month.</p>
+                    <p>Eviction process may begin for payments more than 30 days late.</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </DialogContent>
+        </Dialog>
+      </motion.div>
+    </motion.div>
   )
 }

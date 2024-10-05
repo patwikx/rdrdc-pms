@@ -1,8 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import Header from '@/components/header/page'
-import Sidebar from '@/components/sidebar/page'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -64,11 +63,34 @@ const transactions = [
 const FinancialForms = () => {
   const [timeframe, setTimeframe] = useState('monthly')
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1
+    }
+  }
+
   return (
-    <div className='flex h-screen bg-background'>
+    <motion.div 
+      className='flex h-screen bg-background'
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
       <main className='flex-1 overflow-hidden'>
         <ScrollArea className="flex-1 p-6">
-          <div className="flex justify-between items-center mb-6">
+          <motion.div className="flex justify-between items-center mb-6" variants={itemVariants}>
             <h1 className="text-3xl font-bold">Financial Overview</h1>
             <div className="flex space-x-2">
               <Select value={timeframe} onValueChange={setTimeframe}>
@@ -90,172 +112,186 @@ const FinancialForms = () => {
                 Export
               </Button>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₱54,231</div>
-                <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-                <TrendingDown className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₱13,000</div>
-                <p className="text-xs text-muted-foreground">+5.4% from last month</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Net Income</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₱18,013</div>
-                <p className="text-xs text-muted-foreground">+14.7% from last month</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Occupancy Rate</CardTitle>
-                <Home className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">92%</div>
-                <p className="text-xs text-muted-foreground">+2% from last month</p>
-              </CardContent>
-            </Card>
-          </div>
+          <motion.div 
+            className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6"
+            variants={containerVariants}
+          >
+            {[
+              { title: "Total Revenue", icon: DollarSign, value: "₱54,231", change: "+20.1% from last month" },
+              { title: "Total Expenses", icon: TrendingDown, value: "₱13,000", change: "+5.4% from last month" },
+              { title: "Net Income", icon: TrendingUp, value: "₱18,013", change: "+14.7% from last month" },
+              { title: "Occupancy Rate", icon: Home, value: "92%", change: "+2% from last month" },
+            ].map((item, index) => (
+              <motion.div key={index} variants={itemVariants}>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+                    <item.icon className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{item.value}</div>
+                    <p className="text-xs text-muted-foreground">{item.change}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
 
-          <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="income">Income</TabsTrigger>
-              <TabsTrigger value="expenses">Expenses</TabsTrigger>
-              <TabsTrigger value="transactions">Transactions</TabsTrigger>
-            </TabsList>
-            <TabsContent value="overview">
-  <Card>
-    <CardHeader>
-      <CardTitle>Revenue Overview</CardTitle>
-      <CardDescription>Monthly revenue for the current year</CardDescription>
-    </CardHeader>
-    <CardContent className="pl-2">
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={revenueData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Line type="monotone" dataKey="revenue" stroke="#8884d8" />
-        </LineChart>
-      </ResponsiveContainer>
-    </CardContent>
-  </Card>
-</TabsContent>
-            <TabsContent value="income">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Income Sources</CardTitle>
-                  <CardDescription>Breakdown of income by category</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={expenseData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {expenseData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="expenses">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Expense Breakdown</CardTitle>
-                  <CardDescription>Detailed view of expenses by category</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={expenseData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {expenseData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="transactions">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Transactions</CardTitle>
-                  <CardDescription>Latest financial activities</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Type</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {transactions.map((transaction) => (
-                        <TableRow key={transaction.id}>
-                          <TableCell>{transaction.date}</TableCell>
-                          <TableCell>{transaction.description}</TableCell>
-                          <TableCell className={transaction.type === 'Income' ? 'text-green-600' : 'text-red-600'}>
-                          ₱{Math.abs(transaction.amount).toFixed(2)}
-                          </TableCell>
-                          <TableCell>{transaction.type}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <motion.div variants={itemVariants}>
+            <Tabs defaultValue="overview" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="income">Income</TabsTrigger>
+                <TabsTrigger value="expenses">Expenses</TabsTrigger>
+                <TabsTrigger value="transactions">Transactions</TabsTrigger>
+              </TabsList>
+              <AnimatePresence mode="wait">
+                <TabsContent value="overview">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Revenue Overview</CardTitle>
+                        <CardDescription>Monthly revenue for the current year</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pl-2">
+                        <ResponsiveContainer width="100%" height={300}>
+                          <LineChart data={revenueData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Line type="monotone" dataKey="revenue" stroke="#8884d8" />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </TabsContent>
+                <TabsContent value="income">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Income Sources</CardTitle>
+                        <CardDescription>Breakdown of income by category</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <PieChart>
+                            <Pie
+                              data={expenseData}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              outerRadius={80}
+                              fill="#8884d8"
+                              dataKey="value"
+                            >
+                              {expenseData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </TabsContent>
+                <TabsContent value="expenses">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Expense Breakdown</CardTitle>
+                        <CardDescription>Detailed view of expenses by category</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <PieChart>
+                            <Pie
+                              data={expenseData}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              outerRadius={80}
+                              fill="#8884d8"
+                              dataKey="value"
+                            >
+                              {expenseData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </TabsContent>
+                <TabsContent value="transactions">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Recent Transactions</CardTitle>
+                        <CardDescription>Latest financial activities</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Date</TableHead>
+                              <TableHead>Description</TableHead>
+                              <TableHead>Amount</TableHead>
+                              <TableHead>Type</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {transactions.map((transaction) => (
+                              <TableRow key={transaction.id}>
+                                <TableCell>{transaction.date}</TableCell>
+                                <TableCell>{transaction.description}</TableCell>
+                                <TableCell className={transaction.type === 'Income' ? 'text-green-600' : 'text-red-600'}>
+                                ₱{Math.abs(transaction.amount).toFixed(2)}
+                                </TableCell>
+                                <TableCell>{transaction.type}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </TabsContent>
+              </AnimatePresence>
+            </Tabs>
+          </motion.div>
         </ScrollArea>
       </main>
-    </div>
+    </motion.div>
   )
 }
 
