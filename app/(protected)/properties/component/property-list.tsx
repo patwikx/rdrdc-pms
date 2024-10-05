@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Building, Search, Bed, Locate, MapPin, LandPlot } from 'lucide-react';
+import { Building, Search, MapPin, LandPlot } from 'lucide-react';
 import { CreatePropertyForm } from './register-form';
 import axios from 'axios';
 import { Badge } from '@/components/ui/badge';
