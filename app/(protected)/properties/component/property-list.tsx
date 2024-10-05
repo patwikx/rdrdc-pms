@@ -146,8 +146,11 @@ const PropertyList = () => {
                     </CardHeader>
                     <CardContent>
                     <div className="flex gap-2"> {/* Use flex for side by side layout */}
-  <div className="flex-1"> {/* Left section for Property Details */}
+  <div className="flex-1 space-y-1"> {/* Left section for Property Details */}
     <h3 className="font-semibold text-lg mb-2">Property Details</h3>
+    <p><strong>Title No.:</strong> {selectedProperty.titleNo}</p>
+    <p><strong>Lot No.:</strong> {selectedProperty.lotNo}</p>
+    <p><strong>Registered Owner:</strong> {selectedProperty.registeredOwner}</p>
     <p><strong>Type:</strong> {selectedProperty.propertyType}</p>
     <p><strong>Total Units:</strong> {selectedProperty.space.length}</p>
     <p><strong>Occupancy Rate:</strong> {calculateOccupancyRate(selectedProperty.space)}%</p>
@@ -159,7 +162,7 @@ const PropertyList = () => {
     </p>
   </div>
   
-  <div className="flex-1"> {/* Right section for RPT Details */}
+  <div className="flex-1 space-y-2"> {/* Right section for RPT Details */}
     <h3 className="font-semibold text-lg mb-2">RPT Details</h3>
     {selectedProperty.rpt.map((rptDetail) => (
       <div key={rptDetail.id}>
