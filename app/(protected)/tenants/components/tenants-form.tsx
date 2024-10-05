@@ -55,6 +55,10 @@ const TenantsForm = () => {
   return (
     <div className='flex h-screen bg-background'>
       <main className='flex-1 overflow-hidden flex flex-col'>
+      <div className='mt-4 mb-4'>
+        <h1 className='text-3xl font-bold mb-4 ml-4'>Tenants</h1>
+        <Separator className='mb-[-17px]' />
+      </div>
         <div className='flex-1 flex overflow-hidden'>
           {/* Tenant List (Left Side) */}
 

@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Building, Search, Bed, Bath, Square } from 'lucide-react'
+import { Label } from '@/components/ui/label'
+import { CreateProperty } from './create-property'
 
 // Define a type for properties
 type Property = {
@@ -43,6 +45,16 @@ const PropertyList = () => {
   return (
     <div className='flex h-screen bg-background'>
       <main className='flex-1 overflow-hidden flex flex-col'>
+      <div className='mt-4 mb-4'>
+        <div className="flex items-center justify-between mb-4 ml-4">
+          <h1 className='text-3xl font-bold'>Properties</h1>
+          <div className='mr-8'>
+          <CreateProperty />
+          </div>
+
+        </div>
+        <Separator className='mb-[-17px]' />
+      </div>
         <div className='flex-1 flex overflow-hidden'>
           <div className='w-1/3 border-r p-4 flex flex-col'>
             <div className='mb-4 flex items-center'>

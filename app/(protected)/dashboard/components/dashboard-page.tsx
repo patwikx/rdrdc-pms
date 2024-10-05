@@ -1,50 +1,36 @@
-"use client"
+"use client";
 
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
-import { Home, Users } from 'lucide-react'
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from "recharts";
+import { Home, Users } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-
+} from "@/components/ui/card";
 
 const data = [
-  {
-    name: 'Jan',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Feb',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Mar',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Apr',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'May',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Jun',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-]
+  { name: "Jan", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Feb", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Mar", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Apr", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "May", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Jun", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Jul", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Aug", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Sept", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Oct", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Nov", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Dec", total: Math.floor(Math.random() * 5000) + 1000 },
+
+];
 
 export default function DashboardForm() {
-
   return (
     <div className="flex h-screen bg-background">
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-
         {/* DashboardForm Content */}
         <div className="p-6">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -133,9 +119,28 @@ export default function DashboardForm() {
                       fontSize={12}
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(value) => `$${value}`}
+                      tickFormatter={(value) => `₱${value}`}
                     />
-                    <Bar dataKey="total" fill="#adfa1d" radius={[4, 4, 0, 0]} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#fff',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                      }}
+                      labelStyle={{ color: '#333', fontWeight: 'bold' }}
+                      itemStyle={{ color: '#333' }}
+                    />
+                    <Bar
+                      dataKey="total"
+                      fill="#adfa1d"
+                      radius={[4, 4, 0, 0]}
+                      barSize={30
+                    }
+                    >
+                      {data.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.total > 4000 ? '#0000FF' : '#0000FF'} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -144,5 +149,5 @@ export default function DashboardForm() {
         </div>
       </main>
     </div>
-  )
+  );
 }

@@ -35,12 +35,12 @@ import {
 
 // Mock data
 const revenueData = [
-  { month: 'Jan', revenue: 50000 },
-  { month: 'Feb', revenue: 55000 },
-  { month: 'Mar', revenue: 60000 },
-  { month: 'Apr', revenue: 58000 },
-  { month: 'May', revenue: 62000 },
-  { month: 'Jun', revenue: 65000 },
+  { month: 'Jan', revenue: Math.floor(Math.random() * 5000) + 1000 },
+  { month: 'Feb', revenue: Math.floor(Math.random() * 5000) + 1000 },
+  { month: 'Mar', revenue: Math.floor(Math.random() * 5000) + 1000 },
+  { month: 'Apr', revenue: Math.floor(Math.random() * 5000) + 1000 },
+  { month: 'May', revenue: Math.floor(Math.random() * 5000) + 1000 },
+  { month: 'Jun', revenue: Math.floor(Math.random() * 5000) + 1000 },
 ]
 
 const expenseData = [
@@ -99,7 +99,7 @@ const FinancialForms = () => {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₱350,000</div>
+                <div className="text-2xl font-bold">₱54,231</div>
                 <p className="text-xs text-muted-foreground">+20.1% from last month</p>
               </CardContent>
             </Card>
@@ -109,7 +109,7 @@ const FinancialForms = () => {
                 <TrendingDown className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₱100,000</div>
+                <div className="text-2xl font-bold">₱13,000</div>
                 <p className="text-xs text-muted-foreground">+5.4% from last month</p>
               </CardContent>
             </Card>
@@ -119,7 +119,7 @@ const FinancialForms = () => {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₱250,000</div>
+                <div className="text-2xl font-bold">₱18,013</div>
                 <p className="text-xs text-muted-foreground">+14.7% from last month</p>
               </CardContent>
             </Card>

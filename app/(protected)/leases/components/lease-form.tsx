@@ -63,7 +63,7 @@ const LeaseForm = () => {
     <div className='flex h-screen bg-background'>
       <main className='flex-1 overflow-hidden'>
         <ScrollArea className="flex-1 p-6">
-          <div className="flex justify-between items-center mt-[-20px]">
+          <div className="flex justify-between items-center mt-[-30px]">
             <h1 className="text-3xl font-bold">Leases</h1>
             <div className="flex items-center space-x-2">
             <TenantOnboarding />

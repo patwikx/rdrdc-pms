@@ -115,13 +115,13 @@ const KanbanForm = () => {
   ref={provided.innerRef}
   {...provided.draggableProps}
   {...provided.dragHandleProps}
-  className="p-4 mb-4 shadow-md hover:shadow-lg transition-shadow duration-200 rounded-lg bg-white border border-gray-200"
+  className="p-4 mb-4 shadow-md hover:shadow-lg transition-shadow duration-200 rounded-lg border"
 >
   <div className="flex justify-between items-start">
     <div className="flex flex-col">
-      <p className="font-medium text-lg text-gray-800">{task.content}</p>
-      <p className="text-sm text-gray-500">{task.property}</p>
-      <p className="text-sm text-gray-500 flex items-center mt-1">
+      <p className="font-bold text-lg">{task.content}</p>
+      <p className="text-sm ">{task.property}</p>
+      <p className="text-sm flex items-center mt-1">
         <User className="h-4 w-4 mr-1 text-gray-400" />
         {task.assignedTo}
       </p>
@@ -129,26 +129,26 @@ const KanbanForm = () => {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" aria-label="More options">
-          <MoreHorizontal className="h-4 w-4 text-gray-600 hover:text-gray-800" />
+          <MoreHorizontal className="h-4 w-4 hover:text-gray-800" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] p-6 bg-white rounded-lg shadow-lg transition-transform duration-200 transform">
-  <DialogHeader className="border-b border-gray-200 pb-4 mb-4">
-    <DialogTitle className="text-xl font-semibold text-blue-800">{task.content}</DialogTitle>
-    <DialogDescription className="text-sm text-gray-600 italic">{task.property}</DialogDescription>
+      <DialogContent className="sm:max-w-[425px] p-6 rounded-lg shadow-lg transition-transform duration-200 transform">
+  <DialogHeader className="border-b pb-4 mb-4">
+    <DialogTitle className="text-xl font-semibold">{task.content}</DialogTitle>
+    <DialogDescription className="text-sm">{task.property}</DialogDescription>
   </DialogHeader>
 
   <div className="mt-4 space-y-6">
     <div className="flex items-center space-x-2">
       <Label>Assigned To</Label>
-      <User className="h-5 w-5 text-blue-500" />
+      <User className="h-5 w-5" />
     </div>
-    <p className="font-semibold border border-blue-100 bg-blue-50 rounded-md p-2">
+    <p className="font-semibold border rounded-md p-2">
       {task.assignedTo}
     </p>
 
     <div className="flex items-center space-x-2">
-      <Label className="font-medium text-gray-800">Description</Label>
+      <Label className="font-medium">Description</Label>
       <Info className="h-5 w-5 text-gray-500" />
     </div>
     <Textarea readOnly>{task.description}</Textarea>
@@ -171,14 +171,14 @@ const KanbanForm = () => {
   return (
     <div className='flex h-screen bg-background'>
       <main className='flex-1 overflow-hidden flex flex-col'>
-        <div className='flex-1 p-6 space-y-6'>
-          <h1 className="text-3xl font-bold text-gray-800">Maintenance Tasks</h1>
+        <div className='flex-1 p-6 space-y-4'>
+          <h1 className="text-3xl font-bold mt-[-25px]">Maintenance Tasks</h1>
           <DragDropContext onDragEnd={onDragEnd}>
             <div className="flex space-x-6 h-[calc(100vh-200px)]">
               {Object.entries(tasks).map(([columnId, columnTasks]) => (
                 <div key={columnId} className="flex-1">
-                  <Card className="h-full flex flex-col bg-white rounded-lg shadow-lg overflow-hidden">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-4 border-b border-gray-200">
+                  <Card className="h-full flex flex-col rounded-lg shadow-lg overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-4 border-b">
                       <CardTitle className="text-xl font-semibold capitalize">{columnId.replace(/([A-Z])/g, ' $1').trim()}</CardTitle>
                       {columnId === 'todo' && (
     <Dialog>
@@ -188,7 +188,7 @@ const KanbanForm = () => {
           Add Task
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] p-6 rounded-lg shadow-lg bg-white">
+      <DialogContent className="sm:max-w-[500px] p-6 rounded-lg shadow-lg">
   <DialogHeader>
     <DialogTitle className="text-xl font-semibold">Create New Task</DialogTitle>
     <DialogDescription className="text-sm text-muted-foreground">
@@ -197,28 +197,28 @@ const KanbanForm = () => {
   </DialogHeader>
   <div className="space-y-6 py-6">
     <div className="space-y-4">
-      <Label htmlFor="task-name" className="block text-sm font-medium text-gray-700">
+      <Label htmlFor="task-name" className="block text-sm font-medium">
         Task Name
       </Label>
       <Input
         id="task-name"
         value={newTask.content}
         onChange={(e) => setNewTask({ ...newTask, content: e.target.value })}
-        className="block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+        className="block w-full border  rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
         placeholder="Enter task name"
       />
     </div>
     <div className="space-y-4">
-      <Label htmlFor="task-property" className="block text-sm font-medium text-gray-700">
+      <Label htmlFor="task-property" className="block text-sm font-medium">
         Property
       </Label>
       <Select
         onValueChange={(value) => setNewTask({ ...newTask, property: value })}
       >
-        <SelectTrigger className="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+        <SelectTrigger className="border rounded-md focus:ring-indigo-500 focus:border-indigo-500">
           <SelectValue placeholder="Select a property" />
         </SelectTrigger>
-        <SelectContent className="bg-white rounded-md border border-gray-300">
+        <SelectContent className=" rounded-md border ">
           {properties.map((property) => (
             <SelectItem key={property.id} value={property.name}>
               {property.name}
@@ -234,10 +234,10 @@ const KanbanForm = () => {
       <Select
         onValueChange={(value) => setNewTask({ ...newTask, assignedTo: value })}
       >
-        <SelectTrigger className="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+        <SelectTrigger className="border  rounded-md focus:ring-indigo-500 focus:border-indigo-500">
           <SelectValue placeholder="Assign to user" />
         </SelectTrigger>
-        <SelectContent className="bg-white rounded-md border border-gray-300">
+        <SelectContent className=" rounded-md border">
           {users.map((user) => (
             <SelectItem key={user.id} value={user.name}>
               {user.name}
@@ -247,14 +247,14 @@ const KanbanForm = () => {
       </Select>
     </div>
     <div className="space-y-4">
-      <Label htmlFor="task-description" className="block text-sm font-medium text-gray-700">
+      <Label htmlFor="task-description" className="block text-sm font-medium ">
         Task Description
       </Label>
       <Textarea
         id="task-description"
         value={newTask.description}
         onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-        className="block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+        className="block w-full border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
         placeholder="Enter task description"
       />
     </div>
@@ -262,7 +262,7 @@ const KanbanForm = () => {
   <DialogFooter className="flex justify-end space-x-2">
     <Button variant="secondary">Cancel</Button>
     <Button
-      className="bg-indigo-600 text-white hover:bg-indigo-500"
+      className="bg-indigo-600 hover:bg-indigo-500"
       onClick={() => addTask(columnId as keyof TasksState)}
     >
       Create Task
