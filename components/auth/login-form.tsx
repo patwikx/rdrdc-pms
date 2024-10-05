@@ -24,6 +24,7 @@ import { FormSuccess } from "@/components/form-success"
 import { login } from "@/actions/login"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Mail, Lock, Loader2 } from "lucide-react"
+import { RegisterForm } from "./register-form"
 
 export const LoginForm = () => {
   const searchParams = useSearchParams()

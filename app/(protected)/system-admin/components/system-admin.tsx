@@ -1,18 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Users, Search, Plus, Lock, Shield, Eye, EyeOff } from "lucide-react"
+import { Search, Lock, Shield } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
 import { RegisterForm } from '@/components/auth/register-form'
+import axios from 'axios';
 
 export default function SystemAdminDetails() {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
@@ -29,6 +29,22 @@ export default function SystemAdminDetails() {
     setSelectedUser(userId);
     setIsPermissionsModalOpen(true);
   };
+
+  const [users, setUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Fetch users from the API
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('/api/fetch-users');
+        setUsers(response.data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   return (
     <div className='flex h-screen bg-background'>
@@ -67,100 +83,102 @@ export default function SystemAdminDetails() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      <TableRow>
-                        <TableCell>Patrick Miranda</TableCell>
-                        <TableCell>plmiranda@rdretailgroup.com.ph</TableCell>
-                        <TableCell>Admin</TableCell>
-                        <TableCell>
-                          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                            Active
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" onClick={() => handlePasswordChange(1)}>
-                                  <Lock className="h-4 w-4 mr-2" />
-                                  Change Password
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Change Password</DialogTitle>
-                                  <DialogDescription>Enter a new password for the user.</DialogDescription>
-                                </DialogHeader>
-                                <form className="space-y-4">
-                                  <div>
-                                    <Label htmlFor="new-password">New Password</Label>
-                                    <Input id="new-password" type="password" />
-                                  </div>
-                                  <div>
-                                    <Label htmlFor="confirm-password">Confirm Password</Label>
-                                    <Input id="confirm-password" type="password" />
-                                  </div>
-                                </form>
-                                <DialogFooter>
-                                  <Button type="submit" onClick={() => setIsPasswordModalOpen(false)}>Change Password</Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                            <Dialog open={isPermissionsModalOpen} onOpenChange={setIsPermissionsModalOpen}>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" onClick={() => handleEditPermissions(1)}>
-                                  <Shield className="h-4 w-4 mr-2" />
-                                  Edit Permissions
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="p-6">
-  <DialogHeader>
-    <DialogTitle className="text-lg font-semibold">Edit User Permissions</DialogTitle>
-    <DialogDescription className="text-sm text-muted-foreground">
-      Modify access rights for this user.
-    </DialogDescription>
-  </DialogHeader>
-  <div className="space-y-6">
-    {/* Permissions Section */}
-    <div>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="property-access">Property Access</Label>
-          <Switch id="property-access" />
+  {users.map((user) => (
+    <TableRow key={user.id}> {/* Assuming each user has a unique 'id' */}
+      <TableCell>{user.firstName} {user.lastName}</TableCell>
+      <TableCell>{user.email}</TableCell>
+      <TableCell>{user.role}</TableCell> {/* Update according to your user object */}
+      <TableCell>
+        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+          {user.status} {/* Update according to your user object */}
+        </span>
+      </TableCell>
+      <TableCell>
+        <div className="flex space-x-2">
+          <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" onClick={() => handlePasswordChange(user.id)}>
+                <Lock className="h-4 w-4 mr-2" />
+                Change Password
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Change Password</DialogTitle>
+                <DialogDescription>Enter a new password for the user.</DialogDescription>
+              </DialogHeader>
+              <form className="space-y-4">
+                <div>
+                  <Label htmlFor="new-password">New Password</Label>
+                  <Input id="new-password" type="password" />
+                </div>
+                <div>
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Input id="confirm-password" type="password" />
+                </div>
+              </form>
+              <DialogFooter>
+                <Button type="submit" onClick={() => setIsPasswordModalOpen(false)}>Change Password</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={isPermissionsModalOpen} onOpenChange={setIsPermissionsModalOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" onClick={() => handleEditPermissions(user.id)}>
+                <Shield className="h-4 w-4 mr-2" />
+                Edit Permissions
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="p-6">
+              <DialogHeader>
+                <DialogTitle className="text-lg font-semibold">Edit User Permissions</DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground">
+                  Modify access rights for this user.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="property-access">Property Access</Label>
+                      <Switch id="property-access"  />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="tenant-access">Tenant Access</Label>
+                      <Switch id="tenant-access" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="leasing-access">Leasing Access</Label>
+                      <Switch id="leasing-access"  />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="financial-reports">Financial Reports</Label>
+                      <Switch id="financial-reports"  />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="system-settings">System Settings</Label>
+                      <Switch id="system-settings"  />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter className="flex justify-center space-x-2">
+                <Button variant="outline" onClick={() => setIsPermissionsModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" onClick={() => setIsPermissionsModalOpen(false)}>
+                  Save
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
-        <div className="flex items-center justify-between">
-          <Label htmlFor="property-access">Tenant Access</Label>
-          <Switch id="tenant-access" />
-        </div>
-        <div className="flex items-center justify-between">
-          <Label htmlFor="property-access">Leasing Access</Label>
-          <Switch id="leasing-access" />
-        </div>
-        <div className="flex items-center justify-between">
-          <Label htmlFor="financial-reports">Financial Reports</Label>
-          <Switch id="financial-reports" />
-        </div>
-        <div className="flex items-center justify-between">
-          <Label htmlFor="system-settings">System Settings</Label>
-          <Switch id="system-settings" />
-        </div>
-      </div>
-    </div>
-  </div>
-  <DialogFooter className="flex justify-center space-x-2">
-    <Button variant="outline" onClick={() => setIsPermissionsModalOpen(false)}>
-      Cancel
-    </Button>
-    <Button type="submit" onClick={() => setIsPermissionsModalOpen(false)}>
-      Save
-    </Button>
-  </DialogFooter>
-</DialogContent>
-                            </Dialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      {/* Add more user rows as needed */}
-                    </TableBody>
+      </TableCell>
+    </TableRow>
+  ))}
+  {/* Add more user rows as needed */}
+</TableBody>
+
                   </Table>
                 </CardContent>
               </Card>

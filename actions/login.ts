@@ -86,11 +86,6 @@ export const login = async (
         });
       }
 
-      await prisma.twoFactorConfirmation.create({
-        data: {
-          userId: existingUser.id,
-        }
-      });
     } else {
       const twoFactorToken = await generateTwoFactorToken(existingUser.email)
       await sendTwoFactorTokenEmail(

@@ -17,9 +17,11 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import { signOut } from '@/auth';
 import { ModeToggle } from '../theme-toggle';
 
+
 const Header = () => {
   const router = useRouter();
   const session = useCurrentUser();
+
   
   // Sample notifications data
   const notifications = [
@@ -78,27 +80,27 @@ const Header = () => {
           </DropdownMenu>
         </div>
 
-        {/* Notifications Dropdown */}
-        {openNotifications && (
-          <div className="absolute right-4 top-14 z-10 w-64 rounded-md border bg-white shadow-md">
-            <div className="p-2">
-              <p className="font-semibold">Notifications</p>
-              <DropdownMenuSeparator />
-              <div className="max-h-60 overflow-y-auto">
-                {notifications.length > 0 ? (
-                  notifications.map(notification => (
-                    <div key={notification.id} className="p-2 hover:bg-gray-100">
-                      <p className="text-sm">{notification.message}</p>
-                      <p className="text-xs text-muted-foreground">{notification.date}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="p-2 text-sm text-muted-foreground">No notifications</p>
-                )}
-              </div>
+       {/* Notifications Dropdown */}
+{openNotifications && (
+  <div className="absolute right-4 top-14 z-10 w-64 rounded-md border border-gray-200 bg-background shadow-md">
+    <div className="p-4">
+      <p className="font-semibold">Notifications</p>
+      <DropdownMenuSeparator />
+      <div className="max-h-60 overflow-y-auto">
+        {notifications.length > 0 ? (
+          notifications.map(notification => (
+            <div key={notification.id} className="p-2 hover:bg-accent hover:bg-opacity-30 transition-colors">
+              <p className="text-sm text-foreground">{notification.message}</p>
+              <p className="text-xs text-muted-foreground">{notification.date}</p>
             </div>
-          </div>
+          ))
+        ) : (
+          <p className="p-2 text-sm text-muted-foreground">No notifications</p>
         )}
+      </div>
+    </div>
+  </div>
+)}
       </header>
     </div>
   );

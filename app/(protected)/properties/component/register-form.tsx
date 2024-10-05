@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { RegisterUserSchema } from "@/schemas";
+import { CreatePropertySchema, RegisterUserSchema } from "@/schemas";
 import { Input } from "@/components/ui/input";
 import {
   Form,
@@ -28,8 +28,7 @@ import {
 import { UserRole } from "@prisma/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
-import { register } from "@/actions/queries";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { createProperty, registerUser } from "@/actions/queries";
 import {
   Dialog,
   DialogHeader,
@@ -39,30 +38,31 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 
-export const CreateProperty = () => {
+export const CreatePropertyForm = () => {
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
   const user = useCurrentUser();
 
-  const form = useForm<z.infer<typeof RegisterUserSchema>>({
-    resolver: zodResolver(RegisterUserSchema),
+  const form = useForm<z.infer<typeof CreatePropertySchema>>({
+    resolver: zodResolver(CreatePropertySchema),
     defaultValues: {
-      email: "",
-      password: "",
-      firstName: "",
-      lastName: "",
-      contactNo: "",
+      lotNo: "",
+      titleNo: "",
+      propertyCode: "",
+      propertyName: "",
+      city: "",
       address: "",
-      role: undefined,
+      province: "",
+      propertyType: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof RegisterUserSchema>) => {
+  const onSubmit = (values: z.infer<typeof CreatePropertySchema>) => {
     setError("");
     setSuccess("");
     startTransition(() => {
-      register(values)
+      createProperty(values)
         .then((data) => {
           setError(data.error);
           setSuccess(data.success);
@@ -83,11 +83,11 @@ export const CreateProperty = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>Create New Property</Button>
+        <Button>Add Property</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create System User</DialogTitle>
+          <DialogTitle>Add New Property</DialogTitle>
           <DialogDescription>Fill in the details below:</DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -96,79 +96,89 @@ export const CreateProperty = () => {
               <div className="flex space-x-4">
                 <FormField
                   control={form.control}
-                  name="firstName"
+                  name="propertyCode"
                   render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel className="font-semibold">First Name</FormLabel>
+                    <FormItem>
+                      <FormLabel className="font-semibold">Property Code</FormLabel>
                       <FormControl>
-                        <Input {...field} disabled={isPending} placeholder="Juan" />
+                        <Input {...field} disabled={isPending} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 <FormField
+                control={form.control}
+                name="titleNo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">Title No.</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        disabled={isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+                <FormField
+                control={form.control}
+                name="lotNo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">Lot No.</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        disabled={isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              </div>
+              <FormField
                   control={form.control}
-                  name="lastName"
+                  name="propertyName"
                   render={({ field }) => (
                     <FormItem className="flex-1">
-                      <FormLabel className="font-semibold">Last Name</FormLabel>
+                      <FormLabel className="font-semibold">Property Name</FormLabel>
                       <FormControl>
-                        <Input {...field} disabled={isPending} placeholder="Dela Cruz" />
+                        <Input {...field} disabled={isPending} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold">Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isPending}
-                        placeholder="email@example.com"
-                        type="email"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold">Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isPending}
-                        placeholder="******"
-                        type="password"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                  control={form.control}
+                  name="registeredOwner"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel className="font-semibold">Registered Owner</FormLabel>
+                      <FormControl>
+                        <Input {...field} disabled={isPending} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
 
               <div className="flex w-full space-x-4">
                 <div className="w-1/2">
                   <FormField
                     control={form.control}
-                    name="role"
+                    name="propertyType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-semibold">Role</FormLabel>
+                        <FormLabel className="font-semibold">Property Type</FormLabel>
                         <FormControl>
                           <Controller
-                            name="role"
+                            name="propertyType"
                             control={form.control}
                             render={({ field }) => (
                               <Select
@@ -180,10 +190,10 @@ export const CreateProperty = () => {
                                   <SelectValue placeholder="Select role..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value={UserRole.Custodian}>User</SelectItem>
+                                  <SelectItem value={UserRole.Staff}>User</SelectItem>
                                   <SelectItem value={UserRole.Manager}>Manager</SelectItem>
                                   <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
-                                  <SelectItem value={UserRole.Viewer}>Viewer</SelectItem>
+                                  <SelectItem value={UserRole.Tenant}>Tenant</SelectItem>
                                 </SelectContent>
                               </Select>
                             )}
@@ -204,7 +214,7 @@ export const CreateProperty = () => {
                       <FormItem>
                         <FormLabel className="font-semibold">Address</FormLabel>
                         <FormControl>
-                          <Input {...field} disabled={isPending} placeholder="Complete address.." />
+                          <Input {...field} disabled={isPending} type='address' />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -214,12 +224,27 @@ export const CreateProperty = () => {
                 <div className="w-1/2">
                   <FormField
                     control={form.control}
-                    name="contactNo"
+                    name="city"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-semibold">Contact No.</FormLabel>
+                        <FormLabel className="font-semibold">City</FormLabel>
                         <FormControl>
-                          <Input {...field} disabled={isPending} placeholder="Contact number.." />
+                          <Input {...field} disabled={isPending} type='address' />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="w-1/2">
+                  <FormField
+                    control={form.control}
+                    name="province"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-semibold">Province</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled={isPending} type='address' />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

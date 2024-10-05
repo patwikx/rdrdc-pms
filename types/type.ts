@@ -22,3 +22,42 @@ export interface SidebarItems {
   }>;
   extras?: ReactNode;
 }
+
+export type Property = {
+  id: number;
+  propertyCode: string;
+  propertyName: string;
+  titleNo: string;
+  lotNo: string;
+  registeredOwner: string;
+  city: string;
+  province: string;
+  address: string;
+  propertyType: string;
+  units: number;
+  rent: number;
+  space: Space[]; 
+  rpt: RPT[];
+  attachments: Attachments[]
+};
+
+export type Space = {
+  id: string;
+  spaceArea: string;
+  spaceNumber: string;
+  spaceStatus: string;
+};
+
+export type RPT = {
+  id: string;
+  TaxDecNo: string;
+  PaymentMode: String;
+  DueDate: string;
+  Status: string;
+  custodianRemarks: string;
+};
+
+export type Attachments = {
+  id: string;
+  files: string;
+}

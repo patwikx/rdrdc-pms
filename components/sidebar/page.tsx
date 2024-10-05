@@ -13,7 +13,9 @@ import {
   Home,
   MonitorIcon,
   ClipboardList,
-  DollarSignIcon
+  DollarSignIcon,
+  DownloadCloud,
+  Receipt
 } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -25,6 +27,7 @@ const menuItems = [
   { icon: Building, label: 'Properties', href: '/properties' },
   { icon: Users, label: 'Tenants', href: '/tenants' },
   { icon: FileText, label: 'Leases', href: '/leases' },
+  { icon: Receipt, label: 'Billing', href: '/billing' },
   { icon: DollarSignIcon, label: 'Financials', href: '/financials' },
   { icon: ClipboardList, label: 'Kanban', href: '/kanban' },
   { icon: Settings, label: 'Settings', href: '/settings' },

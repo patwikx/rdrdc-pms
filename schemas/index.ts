@@ -5,7 +5,7 @@ import { PaymentStatus, PaymentType, UserRole } from "@prisma/client";
 export const SettingsSchema = z.object({
   name: z.optional(z.string()),
   isTwoFactorEnabled: z.optional(z.boolean()),
-  role: z.enum([UserRole.Administrator, UserRole.Custodian, UserRole.Manager, UserRole.Supervisor, UserRole.Viewer]),
+  role: z.enum([UserRole.Administrator, UserRole.Tenant, UserRole.Manager, UserRole.Supervisor, UserRole.Staff]),
   email: z.optional(z.string().email()),
   password: z.optional(z.string().min(6)),
   newPassword: z.optional(z.string().min(6)),
@@ -68,15 +68,27 @@ export const RegisterUserSchema = z.object({
   }),
   address: z.string().optional(),
   contactNo: z.string().optional(),
-  role: z.enum([UserRole.Administrator, UserRole.Custodian, UserRole.Manager, UserRole.Supervisor, UserRole.Viewer]).optional(),
+  role: z.enum([UserRole.Administrator, UserRole.Staff, UserRole.Manager, UserRole.Supervisor, UserRole.Tenant]).optional(),
 });
 
-export const CreateLeaveTypeSchema = z.object({
-  name: z.string().min(1, {
-    message: "Leave Type is required",
+export const RegisterTenantSchema = z.object({
+  email: z.string().email({
+    message: "Email is required",
   }),
-  description: z.string().optional(),
+  password: z.string().min(6, {
+    message: "Minimum 6 characters required",
+  }),
+  firstName: z.string().min(1, {
+    message: "First Name is required",
+  }),
+  lastName: z.string().min(1, {
+    message: "Last Name is required",
+  }),
+  address: z.string().optional(),
+  contactNo: z.string().optional(),
+  role: z.enum([UserRole.Administrator, UserRole.Staff, UserRole.Manager, UserRole.Supervisor, UserRole.Tenant]).optional(),
 });
+
 
 export const CreatePropertySchema = z.object({
   propertyCode: z.string().min(1, {
@@ -103,31 +115,9 @@ export const CreatePropertySchema = z.object({
   registeredOwner: z.string().min(1, {
     message: "Registered Owner is required."
   }),
-  custodianId: z.string().min(1, {
-    message: "Custodian is required."
-  }),
-  companyId: z.string().min(1, {
-    message: "Custodian is required."
-  }),
-})
-
-export const CreateLeaveSchema = z.object({
-  startDate: z.string().min(1, {
-    message: "Start Date is required"
-  }),
-  endDate: z.string().min(1, {
-    message: "End Date is required"
-  }),
-  reason: z.string().min(1, {
-    message: "Reason is required"
-  }),
-  leaveType: z.string().min(1, {
-    message: "Leave Type is required"
-  }),
-  approverId: z.string(),
-  userId: z.string(),
-  numberOfDays: z.string().optional(),
-  leaveBalance: z.string().optional(),
+  propertyType: z.string().min(1, {
+    message: "Property Type is required."
+  })
 })
 
 
@@ -154,8 +144,6 @@ export const UpdatePropertySchema = z.object({
   address: z.string().optional(),
   city: z.string().optional(),
   province: z.string().optional(),
-  custodianId: z.string().optional(),
-  companyId: z.string().optional()
 })
 
 export const CreateRPTSchema = z.object({

@@ -28,7 +28,7 @@ import {
 import { UserRole } from "@prisma/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
-import { register } from "@/actions/queries";
+import { registerUser } from "@/actions/queries";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import {
   Dialog,
@@ -62,7 +62,7 @@ export const RegisterForm = () => {
     setError("");
     setSuccess("");
     startTransition(() => {
-      register(values)
+      registerUser(values)
         .then((data) => {
           setError(data.error);
           setSuccess(data.success);
@@ -180,10 +180,10 @@ export const RegisterForm = () => {
                                   <SelectValue placeholder="Select role..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value={UserRole.Custodian}>User</SelectItem>
+                                  <SelectItem value={UserRole.Staff}>User</SelectItem>
                                   <SelectItem value={UserRole.Manager}>Manager</SelectItem>
                                   <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
-                                  <SelectItem value={UserRole.Viewer}>Viewer</SelectItem>
+                                  <SelectItem value={UserRole.Tenant}>Tenant</SelectItem>
                                 </SelectContent>
                               </Select>
                             )}

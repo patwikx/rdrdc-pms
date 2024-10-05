@@ -1,6 +1,6 @@
 'use server'
 
-import {  CreatePropertySchema, CreateRPTSchema, NewPasswordSchema, RegisterUserSchema, ResetSchema, SettingsSchema, UpdatePropertySchema, UpdateRPTSchema } from "@/schemas";
+import {  CreatePropertySchema, CreateRPTSchema, NewPasswordSchema, RegisterTenantSchema, RegisterUserSchema, ResetSchema, SettingsSchema, UpdatePropertySchema, UpdateRPTSchema } from "@/schemas";
 import { prisma } from "@/lib/db";
 import {  getUserByEmail, getUserById } from "@/data/user";
 import {  sendPasswordResetEmail, sendVerificationEmail } from "@/lib/mail";
@@ -209,7 +209,7 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
       return { error: "Invalid fields!" };
     }
   
-    const { propertyCode, propertyName, titleNo, lotNo, registeredOwner, address, city, province, custodianId, companyId } = validatedFields.data;
+    const { propertyCode, propertyName, titleNo, lotNo, registeredOwner, address, city, province, propertyType } = validatedFields.data;
   
     await prisma.property.create({
       data: {
@@ -221,16 +221,15 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
         address,
         city,
         province,
-        custodianId,
-        companyId
+        propertyType
       }
     });
-    revalidatePath('/dashboard/property-management')
+    revalidatePath('/properties')
     return { success: "Property created successfully!" };
   };
 
 
-  export const register = async (values: z.infer<typeof RegisterUserSchema>) => {
+  export const registerUser = async (values: z.infer<typeof RegisterUserSchema>) => {
     const validatedFields = RegisterUserSchema.safeParse(values);
   
     if (!validatedFields.success) {
@@ -267,6 +266,38 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
     return { success: "Confirmation email sent!" };
   };
 
+  export const registerTenant = async (values: z.infer<typeof RegisterTenantSchema>) => {
+    const validatedFields = RegisterTenantSchema.safeParse(values);
+  
+    if (!validatedFields.success) {
+      return { error: "Invalid fields!" };
+    }
+  
+    const { email, password, firstName, lastName, contactNo, address, role, } = validatedFields.data;
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    const existingTenant = await getUserByEmail(email);
+  
+    if (existingTenant) {
+      return { error: "Email already in use!" };
+    }
+  
+    await prisma.tenant.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        contactNo,
+        address,
+        role
+      },
+    });
+
+
+    return { success: "Confirmation email sent!" };
+  };
+
   export const fetchProperties = async () => {
     try {
       const properties = await prisma.property.findMany({
@@ -280,40 +311,9 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
           address: true,
           city: true,
           province: true,
-          company: true,
-          custodian: true
         }
       });
       return properties;
-    } catch (error) {
-      console.error('Error fetching leave data:', error);
-      return [];
-    }
-  };
-  
-
-  export const fetchCompanies = async () => {
-    try {
-      const companies = await prisma.company.findMany({
-        select: {
-          companyName: true
-        }
-      });
-      return companies;
-    } catch (error) {
-      console.error('Error fetching leave data:', error);
-      return [];
-    }
-  };
-
-  export const fetchCustodians = async () => {
-    try {
-      const companies = await prisma.user.findMany({
-        where: {
-          role: 'Custodian'
-        }
-      });
-      return companies;
     } catch (error) {
       console.error('Error fetching leave data:', error);
       return [];
@@ -388,8 +388,6 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
           address: values.address,
           city: values.city,
           province: values.province,
-          custodianId: values.custodianId,
-          companyId: values.companyId
   
         },
       });
@@ -457,17 +455,6 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
           address: true,
           province: true,
           city: true,
-          company: {
-            select: {
-              companyName: true, // Select the companyName from the company relation
-            },
-          },
-          custodian : {
-            select: {
-              firstName: true,
-              lastName: true
-            }
-          },
           rpt : {
             select: {
               id: true,
@@ -484,6 +471,29 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
       return properties;
     } catch (error) {
       console.error('Error fetching leave data:', error);
+      return [];
+    }
+  };
+
+
+  export const fetchAllSystemUsers = async () => {
+    try {
+      const users = await prisma.user.findMany({
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          image: true,
+          role: true,
+          address: true,
+          department: true,
+          createdAt: true,
+        }
+      });
+      return users;
+    } catch (error) {
+      console.error('Error fetching user data:', error);
       return [];
     }
   };
