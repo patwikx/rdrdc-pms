@@ -11,9 +11,10 @@ const BillingPage = () => {
       <Sidebar />
       <main className='flex-1 overflow-y-auto'>
         <Header />
-        <div className="container mx-auto py-10">
-          <BillingManagement />
+        <div className='ml-8 mr-8 mt-12'>
+        <BillingManagement />
         </div>
+
       </main>
     </div>
   )
