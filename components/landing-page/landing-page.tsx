@@ -147,9 +147,9 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4 md:justify-start md:space-x-10">
             <div className="flex justify-start lg:w-0 lg:flex-1">
-              <a href="#" className="flex items-center">
+              <a href="/" className="flex items-center">
                 <Image src='/rdrdc.png' alt='Logo' width={30} height={30} />
-                <span className="ml-2 text-xl font-bold text-gray-900">RD REALTY DEVELOPMENT CORPORATION</span>
+                <span className="ml-2 text-lg font-bold text-gray-900">RD REALTY DEVELOPMENT CORPORATION</span>
               </a>
             </div>
             <div className="-mr-2 -my-2 md:hidden mt-4">
@@ -213,11 +213,6 @@ export default function LandingPage() {
                   </nav>
                 </div>
               </div>
-              <div className="py-6 px-5 space-y-6">
-                <Button className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700">
-                  Schedule a Viewing
-                </Button>
-              </div>
             </div>
           </div>
         )}
@@ -241,8 +236,8 @@ export default function LandingPage() {
                 RD REALTY DEVELOPMENT CORPORATION offers a wide range of commercial, residential, and land properties for rent. Find your perfect space with us.
               </motion.p>
               <motion.div variants={fadeIn} className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
-              <div className="inline-flex rounded-md shadow">
-                  <Button className="inline-flex items-center justify-center px-5 mr-2 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+              <div className="inline-flex rounded-md shadow mr-2">
+                  <Button className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                     Schedule Viewing
                   </Button>
                 </div>
