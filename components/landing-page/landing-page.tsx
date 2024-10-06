@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { motion, AnimatePresence, Variants } from 'framer-motion'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Building2, CheckCircle, Users, BarChart3, Menu, X, Home, MapPin, DollarSign, Briefcase, Facebook, Instagram, Mail, Clock } from 'lucide-react'
+import { Building2, CheckCircle, Users, BarChart3, Menu, X, Home, MapPin, DollarSign, Briefcase, Facebook, Instagram, Mail, Clock, Phone } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -439,7 +439,7 @@ export default function LandingPage() {
                     <h3 className="text-xl font-semibold text-gray-900">{property.name}</h3>
                     <p className="text-gray-600">{property.type}</p>
                     <p className="text-gray-600"><MapPin className="inline-block w-4 h-4 mr-1" />{property.location}</p>
-                    <p className="text-blue-600 font-bold mt-2"><DollarSign className="inline-block w-4 h-4 mr-1" />{property.price}</p>
+                    <p className="text-blue-600 font-bold mt-2">{property.price}</p>
                     <Button className="mt-4 w-full">View Details</Button>
                   </div>
                 </motion.div>
