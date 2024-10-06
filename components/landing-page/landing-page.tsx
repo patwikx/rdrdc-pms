@@ -150,7 +150,7 @@ export default function LandingPage() {
               <a href="/" className="flex items-center">
                 <Image src='/rdrdc.png' alt='Logo' width={30} height={30} />
                 <span className="ml-2 text-lg font-bold text-gray-900 hidden sm:inline">RD REALTY DEVELOPMENT CORPORATION</span>
-                <span className="ml-2 text-lg font-bold text-gray-900 sm:hidden">RD REALTY</span>
+                <span className="ml-2 text-lg font-bold text-gray-900 sm:hidden">RD REALTY DEVELOPMENT CORPORATION</span>
               </a>
             </div>
             <div className="-mr-2 -my-2 md:hidden">
@@ -406,24 +406,24 @@ export default function LandingPage() {
             >
               {[
                 {
-                  name: "Luxury Office Tower",
+                  name: "General Santos Business Park",
                   type: "Commercial",
-                  location: "Downtown Business District",
-                  price: "$50/sqft/month",
+                  location: "General Santos Business Park, General Santos City",
+                  price: "Contact us for pricing.",
                   image: "/rd1.jpg",
                 },
                 {
-                  name: "Spacious Family Home",
+                  name: "Norfolk Pine",
                   type: "Residential",
-                  location: "Suburban Paradise",
-                  price: "$2,500/month",
+                  location: " Brgy. Sinawal, General Santos City,",
+                  price: "Contact us for pricing.",
                   image: "/rd2.jpg",
                 },
                 {
-                  name: "Prime Development Land",
+                  name: "RD City",
                   type: "Land",
-                  location: "Growing Urban Area",
-                  price: "Contact for Price",
+                  location: "Polomolok, South Cotabato",
+                  price: "Contact us for pricing.",
                   image: "/rd4.jpg",
                 },
               ].map((property, index) => (
