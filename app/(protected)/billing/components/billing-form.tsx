@@ -52,11 +52,11 @@ type Tenant = {
 }
 
 const tenants: Tenant[] = [
-  { id: "1", name: "John Doe", unit: "101", dueDate: "2023-06-01", amountDue: 1000, status: 'Pending', email: "john@example.com", phone: "(555) 123-4567", leaseStart: "2023-01-01", leaseEnd: "2023-12-31" },
-  { id: "2", name: "Jane Smith", unit: "102", dueDate: "2023-06-01", amountDue: 1200, status: 'Overdue', email: "jane@example.com", phone: "(555) 234-5678", leaseStart: "2023-02-01", leaseEnd: "2024-01-31" },
-  { id: "3", name: "Bob Johnson", unit: "103", dueDate: "2023-06-02", amountDue: 950, status: 'Paid', email: "bob@example.com", phone: "(555) 345-6789", leaseStart: "2023-03-01", leaseEnd: "2024-02-29" },
-  { id: "4", name: "Alice Brown", unit: "104", dueDate: "2023-06-03", amountDue: 1100, status: 'Pending', email: "alice@example.com", phone: "(555) 456-7890", leaseStart: "2023-04-01", leaseEnd: "2024-03-31" },
-  { id: "5", name: "Charlie Davis", unit: "105", dueDate: "2023-06-04", amountDue: 1050, status: 'Overdue', email: "charlie@example.com", phone: "(555) 567-8901", leaseStart: "2023-05-01", leaseEnd: "2024-04-30" },
+  { id: "1", name: "Larry Paler", unit: "101", dueDate: "2023-06-01", amountDue: 1000, status: 'Pending', email: "larry@example.com", phone: "(555) 123-4567", leaseStart: "2023-01-01", leaseEnd: "2023-12-31" },
+  { id: "2", name: "Jimster Santillan", unit: "102", dueDate: "2023-06-01", amountDue: 1200, status: 'Overdue', email: "jimster@example.com", phone: "(555) 234-5678", leaseStart: "2023-02-01", leaseEnd: "2024-01-31" },
+  { id: "3", name: "Argie Tacay", unit: "103", dueDate: "2023-06-02", amountDue: 950, status: 'Paid', email: "argie@example.com", phone: "(555) 345-6789", leaseStart: "2023-03-01", leaseEnd: "2024-02-29" },
+  { id: "4", name: "Cezar Regalado", unit: "104", dueDate: "2023-06-03", amountDue: 1100, status: 'Pending', email: "cezar@example.com", phone: "(555) 456-7890", leaseStart: "2023-04-01", leaseEnd: "2024-03-31" },
+  { id: "5", name: "Kristian Quizon", unit: "105", dueDate: "2023-06-04", amountDue: 1050, status: 'Overdue', email: "kristian@example.com", phone: "(555) 567-8901", leaseStart: "2023-05-01", leaseEnd: "2024-04-30" },
 ]
 
 export function BillingManagement() {
