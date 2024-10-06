@@ -14,8 +14,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useRouter } from 'next/navigation'
-import { Badge } from '../ui/badge'
-import { Card, CardContent } from '../ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -27,9 +27,9 @@ export default function LandingPage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setShowPromoModal(true);
-    }, 5000); // Adjust the delay time in milliseconds (e.g., 2000 for 2 seconds)
+    }, 5000);
   
-    return () => clearTimeout(timeout); // Cleanup function to clear the timeout on unmount
+    return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
@@ -149,10 +149,11 @@ export default function LandingPage() {
             <div className="flex justify-start lg:w-0 lg:flex-1">
               <a href="/" className="flex items-center">
                 <Image src='/rdrdc.png' alt='Logo' width={30} height={30} />
-                <span className="ml-2 text-lg font-bold text-gray-900">RD REALTY DEVELOPMENT CORPORATION</span>
+                <span className="ml-2 text-lg font-bold text-gray-900 hidden sm:inline">RD REALTY DEVELOPMENT CORPORATION</span>
+                <span className="ml-2 text-lg font-bold text-gray-900 sm:hidden">RD REALTY</span>
               </a>
             </div>
-            <div className="-mr-2 -my-2 md:hidden mt-4">
+            <div className="-mr-2 -my-2 md:hidden">
               <Button
                 variant="ghost"
                 onClick={() => setIsMenuOpen(true)}
@@ -169,53 +170,58 @@ export default function LandingPage() {
               <a href="#contact" className="text-base font-medium text-gray-500 hover:text-gray-900">Contact</a>
             </nav>
             <div className="hidden md:flex items-center justify-end md:flex-1 lg:w-0">
-            <Button onClick={() => router.push('/auth/login')}>Login</Button>
+              <Button onClick={() => router.push('/auth/login')}>Login</Button>
             </div>
           </div>
         </div>
 
         {/* Mobile menu */}
-        {isMenuOpen && (
-          <div className="absolute top-0 inset-x-0 p-2 transition transform origin-top-right md:hidden">
-            <div className="rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 bg-white divide-y-2 divide-gray-50">
-              <div className="pt-5 pb-6 px-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Building2 className="h-8 w-auto text-blue-600" />
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute top-0 inset-x-0 p-2 transition transform origin-top-right md:hidden"
+            >
+              <div className="rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 bg-white divide-y-2 divide-gray-50">
+                <div className="pt-5 pb-6 px-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Building2 className="h-8 w-auto text-blue-600" />
+                    </div>
+                    <div className="-mr-2">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <span className="sr-only">Close menu</span>
+                        <X className="h-6 w-6" aria-hidden="true" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="-mr-2">
-                    <Button
-                      variant="ghost"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <span className="sr-only">Close menu</span>
-                      <X className="h-6 w-6" aria-hidden="true" />
-                    </Button>
+                  <div className="mt-6">
+                    <nav className="grid gap-y-8">
+                      {['Home', 'Properties', 'Services', 'About', 'Contact'].map((item) => (
+                        <a
+                          key={item}
+                          href={`#${item.toLowerCase()}`}
+                          className="-m-3 p-3 flex items-center rounded-md hover:bg-gray-50"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <span className="ml-3 text-base font-medium text-gray-900">{item}</span>
+                        </a>
+                      ))}
+                    </nav>
                   </div>
                 </div>
-                <div className="mt-6">
-                  <nav className="grid gap-y-8">
-                    <a href="#" className="-m-3 p-3 flex items-center rounded-md hover:bg-gray-50">
-                      <span className="ml-3 text-base font-medium text-gray-900">Home</span>
-                    </a>
-                    <a href="#properties" className="-m-3 p-3 flex items-center rounded-md hover:bg-gray-50">
-                      <span className="ml-3 text-base font-medium text-gray-900">Properties</span>
-                    </a>
-                    <a href="#services" className="-m-3 p-3 flex items-center rounded-md hover:bg-gray-50">
-                      <span className="ml-3 text-base font-medium text-gray-900">Services</span>
-                    </a>
-                    <a href="#about" className="-m-3 p-3 flex items-center rounded-md hover:bg-gray-50">
-                      <span className="ml-3 text-base font-medium text-gray-900">About</span>
-                    </a>
-                    <a href="#contact" className="-m-3 p-3 flex items-center rounded-md hover:bg-gray-50">
-                      <span className="ml-3 text-base font-medium text-gray-900">Contact</span>
-                    </a>
-                  </nav>
+                <div className="py-6 px-5 space-y-6">
+                  <Button className="w-full" onClick={() => router.push('/auth/login')}>Login</Button>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       <main className="flex-grow">
@@ -228,29 +234,17 @@ export default function LandingPage() {
               variants={staggerChildren}
               className="lg:w-0 lg:flex-1"
             >
-              <motion.h1 variants={fadeIn} className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
+              <motion.h1 variants={fadeIn} className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
                 <span className="block">Your Premier</span>
                 <span className="block text-blue-600">Real Estate Partner</span>
               </motion.h1>
               <motion.p variants={fadeIn} className="mt-3 max-w-lg text-lg text-gray-500 mb-4">
                 RD REALTY DEVELOPMENT CORPORATION offers a wide range of commercial, residential, and land properties for rent. Find your perfect space with us.
               </motion.p>
-              <motion.div variants={fadeIn} className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
-              <div className="inline-flex rounded-md shadow mr-2">
-                  <Button className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                    Schedule Viewing
-                  </Button>
-                </div>
-                <div className="inline-flex rounded-md shadow">
-                  <Button className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                    Explore Properties
-                  </Button>
-                </div>
-                <div className="ml-3 inline-flex rounded-md shadow">
-                  <Button variant="outline" className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50">
-                    Our Services
-                  </Button>
-                </div>
+              <motion.div variants={fadeIn} className="mt-8 flex flex-wrap gap-4">
+                <Button className="w-full sm:w-auto">Schedule Viewing</Button>
+                <Button className="w-full sm:w-auto">Explore Properties</Button>
+                <Button variant="outline" className="w-full sm:w-auto">Our Services</Button>
               </motion.div>
             </motion.div>
             <div className="mt-8 lg:mt-0 lg:ml-8">
@@ -265,15 +259,15 @@ export default function LandingPage() {
                   alt="RD Realty Properties Showcase"
                   width={600}
                   height={400}
-                  className="rounded-lg shadow-lg"
+                  className="rounded-lg shadow-lg w-full h-auto"
                 />
               </motion.div>
             </div>
           </div>
         </section>
 
-                {/* Notable Clients section */}
-                <section className="py-12 bg-gray-50">
+        {/* Notable Clients section */}
+        <section className="py-12 bg-gray-50 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial="initial"
@@ -312,7 +306,7 @@ export default function LandingPage() {
                   <motion.div
                     key={index}
                     variants={fadeIn}
-                    className="w-40 h-20 mx-4 flex items-center justify-center"
+                    className="w-20 sm:w-40 h-20 mx-4 flex items-center justify-center"
                   >
                     <Image
                       src={logo}
@@ -353,7 +347,7 @@ export default function LandingPage() {
                 whileInView="animate"
                 viewport={{ once: true }}
                 variants={staggerChildren}
-                className="space-y-10 md:space-y-0 md:grid md:grid-cols-3 md:gap-x-8 md:gap-y-10"
+                className="space-y-10 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-x-8 md:gap-y-10"
               >
                 {[
                   {
@@ -386,8 +380,6 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
-
 
         {/* Featured Properties section */}
         <section className="py-12 bg-gray-50">
@@ -520,123 +512,125 @@ export default function LandingPage() {
           </div>
         </section>
 
-{/* About section */}
-<section id="about" className="py-12 bg-white">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <motion.div
-      initial="initial"
-      whileInView="animate"
-      viewport={{ once: true }}
-      variants={staggerChildren}
-      className="lg:text-center"
-    >
-      <motion.h2 
-        variants={fadeIn} 
-        className="text-base text-blue-600 font-semibold tracking-wide uppercase"
-      >
-        About Us
-      </motion.h2>
-      <motion.p 
-        variants={fadeIn} 
-        className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl mb-[-30px]"
-      >
-        Your Trusted Real Estate Partner
-      </motion.p>
-    </motion.div>
+        {/* About section */}
+        <section id="about" className="py-12 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              variants={staggerChildren}
+              className="lg:text-center"
+            >
+              <motion.h2 
+                variants={fadeIn} 
+                className="text-base text-blue-600 font-semibold tracking-wide uppercase"
+              >
+                About Us
+              </motion.h2>
+              <motion.p 
+                variants={fadeIn} 
+                className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl mb-8"
+              >
+                Your Trusted Real Estate Partner
+              </motion.p>
+            </motion.div>
 
-    <div className="mt-10 flex flex-col sm:flex-row gap-8">
-      <motion.div
-        initial="initial"
-        whileInView="animate"
-        viewport={{ once: true }}
-        variants={fadeIn}
-        className="flex-1 bg-white p-6 rounded-lg shadow-md"
-      >
-        <p className="text-lg text-gray-600 mb-4 mt-[-50px">
-        RD Realty Development Corporation was established & registered in June 24, 1985 and is one of the subsidiaries of RD Group of Companies under the management and direction of Mr. Roy C. Rivera.
+            <div className="mt-10 flex flex-col sm:flex-row gap-8">
+              <motion.div
+                initial="initial"
+                whileInView="animate"
+                viewport={{ once: true }}
+                variants={fadeIn}
+                className="flex-1 bg-white p-6 rounded-lg shadow-md"
+              >
+                <p className="text-lg text-gray-600 mb-4">
+                  RD Realty Development Corporation was established & registered in June 24, 1985 and is one of the subsidiaries of RD Group of Companies under the management and direction of Mr. Roy C. Rivera.
+                </p>
+                <p className="text-lg text-gray-600 mb-4">
+                  RD Realty Development Corporation is a member of RD Group of Companies that engaged in the development of real estate projects, property management, and construction of many of the companys future developments. It has grown into a very integrated company providing employment to over 250 people.
+                </p>
+                <p className="text-lg text-gray-600 mb-4">
+                  RD Realty Development Corporation is the property holding firm of the Realty Development Group. It is the largest property owner and considered as the trendsetter in the leasing industry in General Santos City which today operates a growing inventory of 45,000 sqm leasable building spaces across the country and overseas.
+                </p>
+                <Button className="mt-4 bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                  Learn More About Us
+                </Button>
+              </motion.div>
+            </div>
+          </div>
+        </section>
 
+        {/* Mission and Vision section */}
+        <section className="py-12 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              variants={staggerChildren}
+              className="lg:text-center"
+            >
+              <motion.h2
+                variants={fadeIn}
+                className="text-base text-blue-600 font-semibold tracking-wide uppercase"
+              >
+                Our Purpose
+              </motion.h2>
+              <motion.p
+                variants={fadeIn}
+                className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl"
+              >
+                Mission, Vision and Core Values
+              </motion.p>
+            </motion.div>
+            
+            <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              <motion.div
+                initial="initial"
+                whileInView="animate"
+                viewport={{ once: true }}
+                variants={fadeIn}
+                className="bg-white p-6 rounded-lg shadow-md"
+              >
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Our Mission</h3>
+                <p className="text-gray-600">
+                  We are committed to a sustainable and profitable real estate development and business transactions through fostering a mutually beneficial relationship with our stakeholders. We aim to uplift the quality of life of the communities where we operate and glorify God in everything we do.
+                </p>
+              </motion.div>
+              
+              <motion.div
+                initial="initial"
+                whileInView="animate"
+                viewport={{ once: true }}
+                variants={fadeIn}
+                className="bg-white p-6 rounded-lg shadow-md"
+              >
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Our Vision</h3>
+                <p className="text-gray-600">
+                  A diversified real estate company delivering maximum value to customers and stockholders guided by the highest ethical standards of practice and strong faith in God.
+                </p>
+              </motion.div>
 
-RD Realty Development Corporation is a member of RD Group of Companies that engaged in the development of real estate projects, property management, and construction of many of the companys future developments. It has grown into a very integrated company providing employment to over 250 people.
-
-RD Realty Development Corporation is the property holding firm of the Realty Development Group. It is the largest property owner and considered as the trendsetter in the leasing industry in General Santos City which today operates a growing inventory of 45,000 sqm leasable building spaces across the country and overseas.
-        </p>
-        <Button className="mt-4 bg-blue-600 text-white hover:bg-blue-700 transition-colors">
-          Learn More About Us
-        </Button>
-      </motion.div>
-    </div>
-  </div>
-</section>
-
-
-{/* Mission and Vision section */}
-<section className="py-12 bg-gray-50">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <motion.div
-      initial="initial"
-      whileInView="animate"
-      viewport={{ once: true }}
-      variants={staggerChildren}
-      className="lg:text-center"
-    >
-      <motion.h2
-        variants={fadeIn}
-        className="text-base text-blue-600 font-semibold tracking-wide uppercase"
-      >
-        Our Purpose
-      </motion.h2>
-      <motion.p
-        variants={fadeIn}
-        className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl"
-      >
-        Mission, Vision and Core Values
-      </motion.p>
-    </motion.div>
-    
-    <div className="mt-10 flex flex-col sm:flex-row gap-8">
-      <motion.div
-        initial="initial"
-        whileInView="animate"
-        viewport={{ once: true }}
-        variants={fadeIn}
-        className="flex-1 bg-white p-6 rounded-lg shadow-md"
-      >
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Our Mission</h3>
-        <p className="text-gray-600">
-        We are committed to a sustainable and profitable real estate development and business transactions through fostering a mutually beneficial relationship with our stakeholders. We aim to uplift the quality of life of the communities where we operate and glorify God in everything we do.
-        </p>
-      </motion.div>
-      
-      <motion.div
-        initial="initial"
-        whileInView="animate"
-        viewport={{ once: true }}
-        variants={fadeIn}
-        className="flex-1 bg-white p-6 rounded-lg shadow-md"
-      >
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Our Vision</h3>
-        <p className="text-gray-600">
-        A diversified real estate company delivering maximum value to customers and stockholders guided by the highest ethical standards of practice and strong faith in God.
-        </p>
-      </motion.div>
-
-      <motion.div
-        initial="initial"
-        whileInView="animate"
-        viewport={{ once: true }}
-        variants={fadeIn}
-        className="flex-1 bg-white p-6 rounded-lg shadow-md"
-      >
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Core Values</h3>
-        <li className="text-gray-600">
-        Integrity • Innovation • Excellence • Interdependence • Godliness
-        </li>
-        
-      </motion.div>
-    </div>
-  </div>
-</section>
-
+              <motion.div
+                initial="initial"
+                whileInView="animate"
+                viewport={{ once: true }}
+                variants={fadeIn}
+                className="bg-white p-6 rounded-lg shadow-md"
+              >
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Core Values</h3>
+                <ul className="text-gray-600 list-disc list-inside">
+                  <li>Integrity</li>
+                  <li>Innovation</li>
+                  <li>Excellence</li>
+                  <li>Interdependence</li>
+                  <li>Godliness</li>
+                </ul>
+              </motion.div>
+            </div>
+          </div>
+        </section>
 
         {/* CTA Section */}
         <section id="contact" className="bg-blue-700">
@@ -670,10 +664,6 @@ RD Realty Development Corporation is the property holding firm of the Realty Dev
             </motion.div>
           </div>
         </section>
-
-       
-
-        
       </main>
 
       <footer className="bg-gray-800">
@@ -806,7 +796,7 @@ RD Realty Development Corporation is the property holding firm of the Realty Dev
               </div>
             </div>
           </div>
-          <div className="mt-12 border-t border-gray-700 pt-4 mb-[-50px]">
+          <div className="mt-12 border-t border-gray-700 pt-8">
             <p className="text-base text-gray-400 xl:text-center">
               &copy; 2024 RD REALTY DEVELOPMENT CORPORATION. All rights reserved.
             </p>
