@@ -25,6 +25,7 @@ import { login } from "@/actions/login"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Mail, Lock, Loader2 } from "lucide-react"
 import { RegisterForm } from "./register-form"
+import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog"
 
 export const LoginForm = () => {
   const searchParams = useSearchParams()
@@ -67,7 +68,8 @@ export const LoginForm = () => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+
+<div className="flex items-center justify-center min-h-screen bg-background">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
