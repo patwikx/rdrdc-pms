@@ -105,6 +105,7 @@ model Space {
   tenantId     String?
   tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
+  rpt          RPT[]
 }
 
 model Lease {
@@ -130,6 +131,8 @@ model RPT {
   deletedAt        DateTime?
   propertyId       String?
   property         Property?     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  spaceId          String?
+  space            Space?        @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   attachments      Attachments[]
 }
 

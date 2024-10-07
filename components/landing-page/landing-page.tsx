@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { motion, AnimatePresence, Variants } from 'framer-motion'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Building2, CheckCircle, Users, BarChart3, Menu, X, Home, MapPin, DollarSign, Briefcase, Facebook, Instagram, Mail, Clock, Phone } from 'lucide-react'
+import { Building2, CheckCircle, Users, BarChart3, Menu, X, Home, MapPin, DollarSign, Briefcase, Facebook, Instagram, Mail, Clock, Phone, Send, MessageCircle } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,8 @@ import {
 import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import ChatbotWidget from '../chatbot-widget'
+
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -27,7 +29,7 @@ export default function LandingPage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setShowPromoModal(true);
-    }, 5000);
+    }, 10000);
   
     return () => clearTimeout(timeout);
   }, []);
@@ -809,6 +811,8 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      <ChatbotWidget />
 
       <AnimatePresence>
         {showPromoModal && (

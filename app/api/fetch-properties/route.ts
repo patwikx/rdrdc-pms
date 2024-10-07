@@ -25,6 +25,17 @@ export async function GET() {
             spaceArea: true,
             spaceStatus: true,
             spaceRemarks: true,
+            rpt: { // Include the rpt relation for each space
+              select: {
+                id: true,
+                TaxDecNo: true,
+                PaymentMode: true,
+                DueDate: true,
+                Status: true,
+                custodianRemarks: true,
+                createdAt: true
+              }
+            }
           }
         },
         rpt: {
@@ -35,6 +46,7 @@ export async function GET() {
             DueDate: true,
             Status: true,
             custodianRemarks: true,
+            spaceId: true,
             createdAt: true
           }
         },

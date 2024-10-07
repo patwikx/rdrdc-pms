@@ -7,16 +7,158 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Building, Search, MapPin, LandPlot } from 'lucide-react';
+import { Building, Search, MapPin, LandPlot, DollarSign, AlertTriangle, Users, FileText } from 'lucide-react';
 import { CreatePropertyForm } from './create-property-form';
 import axios from 'axios';
 import { Badge } from '@/components/ui/badge';
 import PropertyLoadingSkeleton from '@/components/skeleton';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import Image from 'next/image';
-import { Property, Space } from '@/types/type';
+import { Property, RPT, Space } from '@/types/type';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Calendar } from '@/components/ui/calendar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const revalidate = 0;
+
+interface SpaceDetailsDialogProps {
+  space: Space;
+}
+
+const SpaceDetailsDialog: React.FC<SpaceDetailsDialogProps> = ({ space }) => {
+  const [isOpen, setIsOpen] = React.useState(false)
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: 20 },
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button className="mt-2 w-full">View Details</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold">{space.spaceNumber}</DialogTitle>
+        </DialogHeader>
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              variants={{
+                visible: { transition: { staggerChildren: 0.1 } }
+              }}
+            >
+              <Tabs defaultValue="info" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="info">Space Information</TabsTrigger>
+                  <TabsTrigger value="rpt">RPT Details</TabsTrigger>
+                </TabsList>
+                <TabsContent value="info">
+  <motion.div variants={cardVariants}>
+    <Card className="shadow-lg rounded-lg overflow-hidden bg-white">
+      <CardHeader className="bg-gradient-to-r from-blue-500 to-green-500 text-white p-4 rounded-t-lg">
+        <CardTitle className="text-2xl font-bold">Space Information</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center bg-gray-50 p-3 rounded-lg shadow-md">
+            <LandPlot className="mr-2 h-5 w-5 text-blue-500" />
+            <span className="text-lg font-medium text-gray-700">{space.spaceArea} sq ft</span>
+          </div>
+          <div className="flex items-center bg-gray-50 p-3 rounded-lg shadow-md">
+            <Badge
+              className={`px-2 py-1 rounded-lg text-white text-sm font-medium ${
+                space.spaceStatus === 'Occupied' ? 'bg-red-500' : 'bg-green-500'
+              }`}
+            >
+              {space.spaceStatus}
+            </Badge>
+          </div>
+          <div className="flex items-center bg-gray-50 p-3 rounded-lg shadow-md">
+            <DollarSign className="mr-2 h-5 w-5 text-green-500" />
+            <span className="text-lg font-medium text-gray-700">₱{space.rent}</span>
+          </div>
+          <div className="flex items-center bg-gray-50 p-3 rounded-lg shadow-md">
+            <Users className="mr-2 h-5 w-5 text-purple-500" />
+            <span className="text-lg font-medium text-gray-700">Capacity: 50</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </motion.div>
+</TabsContent>
+
+                <TabsContent value="rpt">
+  <motion.div variants={cardVariants}>
+    <Card className="shadow-lg rounded-lg overflow-hidden bg-white">
+      <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 rounded-t-lg">
+        <CardTitle className="text-2xl font-bold">RPT Details</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4">
+        <ScrollArea className="h-full">
+          {space.rpt && space.rpt.length > 0 ? (
+            space.rpt.map((rptDetail, index) => (
+              <motion.div
+                key={rptDetail.id || index}
+                className="p-4 mb-6 bg-gray-50 rounded-lg shadow-md"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-lg font-semibold text-gray-700">Tax Dec No: {rptDetail.TaxDecNo}</h4>
+                </div>
+                <div className="flex items-center mb-2">
+                  <span className="text-gray-600 font-medium mr-2">Status:</span>
+                  <Badge className={`px-2 py-1 rounded-md text-white ${
+                    rptDetail.Status === 'Paid' ? 'bg-green-500' : 'bg-yellow-500'
+                  }`}>
+                    {rptDetail.Status}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm mb-2">
+                  <div className="flex items-center">
+                    <span className="text-gray-600 font-medium mr-2">Due Date:</span>
+                    <span className="text-gray-800">{rptDetail.DueDate}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <FileText className="mr-2 h-4 w-4 text-purple-500" />
+                    <span className="text-gray-600">Payment Mode: {rptDetail.PaymentMode}</span>
+                  </div>
+                </div>
+                {rptDetail.custodianRemarks && (
+                  <div className="mt-2 flex items-start bg-yellow-100 p-2 rounded-lg">
+                    <AlertTriangle className="mr-2 h-4 w-4 text-yellow-500 flex-shrink-0 mt-1" />
+                    <p className="text-sm text-gray-600">{rptDetail.custodianRemarks}</p>
+                  </div>
+                )}
+                {index < space.rpt.length - 1 && <Separator className="my-4" />}
+              </motion.div>
+            ))
+          ) : (
+            <p className="text-center text-gray-600">No RPT details available for this space.</p>
+          )}
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  </motion.div>
+</TabsContent>
+
+              </Tabs>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 const PropertyList = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -173,35 +315,88 @@ const PropertyList = () => {
                       </CardHeader>
                       <CardContent>
                         <div className="flex gap-2">
-                          <div className="flex-1 space-y-1">
-                            <h3 className="font-semibold text-lg mb-2">Property Details</h3>
-                            <p><strong>Title No.:</strong> {selectedProperty.titleNo}</p>
-                            <p><strong>Lot No.:</strong> {selectedProperty.lotNo}</p>
-                            <p><strong>Registered Owner:</strong> {selectedProperty.registeredOwner}</p>
-                            <p><strong>Type:</strong> {selectedProperty.propertyType}</p>
-                            <p><strong>Total Units:</strong> {selectedProperty.space.length}</p>
-                            <p><strong>Occupancy Rate:</strong> {calculateOccupancyRate(selectedProperty.space)}%</p>
-                            <p>
-                              <strong>Rent:</strong> ₱{new Intl.NumberFormat('en-PH', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              }).format(selectedProperty.rent)}
-                            </p>
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <h3 className="font-semibold text-lg mb-2">RPT Details</h3>
-                            {selectedProperty.rpt.map((rptDetail) => (
-                              <div key={rptDetail.id}>
-                                <p><strong>Tax Dec No:</strong> {rptDetail.TaxDecNo}</p>
-                                <p><strong>Payment Mode:</strong> {rptDetail.PaymentMode}</p>
-                                <p><strong>Due Date:</strong> {rptDetail.DueDate}</p>
-                                <p><strong>Status:</strong> {rptDetail.Status}</p>
-                                <p><strong>Remarks:</strong> {rptDetail.custodianRemarks || 'N/A'}</p>
-                              </div>
-                            ))}
-                          </div>
+
+                        <Tabs defaultValue="propertyInfo" className="w-[470px]">
+  {/* Tab Headers */}
+  <TabsList className="grid w-full grid-cols-2">
+    <TabsTrigger value="propertyInfo">Property Information</TabsTrigger>
+    <TabsTrigger value="rptDetails">RPT Details</TabsTrigger>
+  </TabsList>
+
+  {/* Property Information Tab */}
+  <TabsContent value="propertyInfo" key="propertyInfo">
+    <motion.div
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={{ duration: 0.3 }} // Adjust the duration as needed
+    >
+      <Card className="shadow-lg rounded-lg overflow-hidden">
+        <CardContent className="p-4">
+          <div className="space-y-2">
+            <div className="p-3 border-gray-200">
+              <p className="text-gray-600"><strong>Title No.:</strong> {selectedProperty.titleNo}</p>
+              <p className="text-gray-600"><strong>Lot No.:</strong> {selectedProperty.lotNo}</p>
+              <p className="text-gray-600"><strong>Registered Owner:</strong> {selectedProperty.registeredOwner}</p>
+              <p className="text-gray-600"><strong>Type:</strong> {selectedProperty.propertyType}</p>
+              <p className="text-gray-600"><strong>Total Units:</strong> {selectedProperty.space.length}</p>
+              <p className="text-gray-600"><strong>Occupancy Rate:</strong> {calculateOccupancyRate(selectedProperty.space)}%</p>
+              <p className="text-gray-600">
+                <strong>Rent:</strong> ₱{new Intl.NumberFormat('en-PH', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(selectedProperty.rent)}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  </TabsContent>
+
+  {/* RPT Details Tab */}
+  <TabsContent value="rptDetails" key="rptDetails">
+    <motion.div
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={{ duration: 0.3 }} // Adjust the duration as needed
+    >
+      <Card className="shadow-lg rounded-lg overflow-hidden">
+        <CardContent className="p-4">
+          <div className="space-y-2">
+            {selectedProperty.rpt.map((rptDetail, index) => (
+              <div key={rptDetail.id} className={`p-3 ${index < selectedProperty.rpt.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                <p className="text-gray-600"><strong>Tax Dec No:</strong> {rptDetail.TaxDecNo}</p>
+                <p className="text-gray-600"><strong>Title No.:</strong> {selectedProperty.titleNo}</p>
+                <p className="text-gray-600"><strong>Lot No.:</strong> {selectedProperty.lotNo}</p>
+                <p className="text-gray-600"><strong>Registered Owner:</strong> {selectedProperty.registeredOwner}</p>
+                <p className="text-gray-600"><strong>Payment Mode:</strong> {rptDetail.PaymentMode}</p>
+                <p className="text-gray-600"><strong>Due Date:</strong> {rptDetail.DueDate}</p>
+                <p className="text-gray-600">
+                  <strong>Status:</strong> 
+                  <span 
+                    className={`ml-2 px-2 py-1 rounded-md text-white text-sm ${rptDetail.Status === 'Paid' ? 'bg-green-500' : 'bg-yellow-500'}`}
+                  >
+                    {rptDetail.Status}
+                  </span>
+                </p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  </TabsContent>
+</Tabs>
+
+
+
+
                           <div className="ml-auto mt-[-116px]">
-                            <Carousel className="w-[330px] mr-8">
+                            <Carousel className="w-[330px] mr-8 mt-4">
                               <CarouselContent>
                                 {Array.isArray(selectedProperty.attachments) && selectedProperty.attachments.length > 0 ? (
                                   selectedProperty.attachments.map((attachment) => (
@@ -264,7 +459,7 @@ const PropertyList = () => {
                                         {unit.spaceStatus}
                                       </Badge>
                                     </div>
-                                    <Button className="mt-2 w-full">View Details</Button>
+                                    <SpaceDetailsDialog space={unit} />
                                   </CardContent>
                                 </Card>
                               </motion.div>

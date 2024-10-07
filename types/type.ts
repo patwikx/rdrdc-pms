@@ -46,6 +46,10 @@ export type Space = {
   spaceArea: string;
   spaceNumber: string;
   spaceStatus: string;
+  spaceId: string;
+  rent: string;
+  createdAt: string;
+  rpt: RPT[];
 };
 
 export type RPT = {
