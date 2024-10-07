@@ -6,7 +6,6 @@ import AboutUsPage from "@/components/landing-page/about-section";
 import ContactUsPage from "@/components/landing-page/contact-us";
 import FeaturedProperties from "@/components/landing-page/featured-properties";
 import HeroPage from "@/components/landing-page/hero";
-import LandingPage from "@/components/landing-page/landing-page";
 import NotableClientPage from "@/components/landing-page/notable-clients";
 import PropertyTypes from "@/components/landing-page/our-properties";
 import OurServicesPage from "@/components/landing-page/our-services";
