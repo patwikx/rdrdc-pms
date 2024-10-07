@@ -18,7 +18,7 @@ export default function ChatbotWidget() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsOpen(true)
-    }, 500) // Show after 5 seconds
+    }, 5000) // Show after 5 seconds
 
     return () => clearTimeout(timer)
   }, [])
