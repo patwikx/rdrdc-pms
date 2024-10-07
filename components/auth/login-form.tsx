@@ -131,6 +131,7 @@ export const LoginForm = () => {
                                   disabled={isPending}
                                   type="email"
                                   className="pl-10"
+                                  placeholder="your@email.com"
                                 />
                               </div>
                             </FormControl>
@@ -196,7 +197,7 @@ export const LoginForm = () => {
             <p className="text-sm text-muted-foreground">
               Dont have an account?{" "}
               <span className="text-primary">
-                Contact MIS Department
+                Contact MIS Department.
               </span>
             </p>
           </CardFooter>
