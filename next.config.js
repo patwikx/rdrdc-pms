@@ -24,7 +24,10 @@ const nextConfig = {
         },
         ],
       },
-        reactStrictMode: false,
+    experimental: {
+      googleMaps: true
+    },
+      reactStrictMode: false,
 }
 
 module.exports = nextConfig

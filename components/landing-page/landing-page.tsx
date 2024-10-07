@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence, Variants } from 'framer-motion'
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Building2, CheckCircle, Users, BarChart3, Menu, X, Home, MapPin, DollarSign, Briefcase, Facebook, Instagram, Mail, Clock, Phone, Send, MessageCircle } from 'lucide-react'
 import {
   Dialog,
@@ -17,6 +16,8 @@ import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import ChatbotWidget from '../chatbot-widget'
+import { GoogleMapsEmbed } from '@next/third-parties/google'
+import GoogleMapsSection from '../google-maps'
 
 
 export default function LandingPage() {
@@ -122,6 +123,15 @@ export default function LandingPage() {
     '/rdrdc.png', '/rdrdc.png', '/rdrdc.png',
   ]
 
+  const locations = [
+    { name: "RD Realty Development Corporation", address: "45CM+3HH, General Santos City, South Cotabato", marked: true },
+    { name: "RD Plaza", address: "Fiscal Gregorio Daproza Avenue Corner Pendatun Avenue, 9500 General Santos City, 9500", marked: true },
+    { name: "RD Hardware & Fishing Supply, Inc.", address: "456H+RVX, Santiago Blvd, General Santos City, South Cotabato", marked: true},
+    { name: "FitMart Gensan", address: "4579+3J4, Corner Claro M. Recto Street, Pres. Sergio Osmeña Avenue, Lungsod ng General Santos, 9500", marked: true },
+
+    // Add more locations as needed
+  ];
+
   const promos = [
     {
       title: "New Commercial Lease Discount",
@@ -190,7 +200,7 @@ export default function LandingPage() {
                 <div className="pt-5 pb-6 px-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Building2 className="h-8 w-auto text-blue-600" />
+                      <Image src='/rdrdc.png' alt='Logo' width={30} height={40} />
                     </div>
                     <div className="-mr-2">
                       <Button
@@ -449,6 +459,8 @@ export default function LandingPage() {
             </motion.div>
           </div>
         </section>
+
+          <GoogleMapsSection locations={locations} />
 
         {/* Services section */}
         <section id="services" className="py-12 bg-white">
