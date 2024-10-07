@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { memo, useMemo } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { GoogleMapsEmbed } from '@next/third-parties/google';
 
 interface Location {
@@ -28,12 +28,18 @@ const MemoizedGoogleMapsEmbed = memo(function MemoizedGoogleMapsEmbed({ q }: { q
 });
 
 const GoogleMapsSection = memo(function GoogleMapsSection({ locations }: GoogleMapsSectionProps) {
+  const [isClient, setIsClient] = useState(false);
   const formattedLocations = useMemo(() => {
     // Filter marked locations
     const markedLocations = locations.filter(loc => loc.marked);
     // Format for Google Maps query
     return markedLocations.map(loc => `${loc.name}, ${loc.address}`).join('|'); // Format for multiple locations
   }, [locations]);
+
+  // Set isClient to true after the component mounts
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <section className="py-12 bg-white">
@@ -46,7 +52,7 @@ const GoogleMapsSection = memo(function GoogleMapsSection({ locations }: GoogleM
         </div>
 
         <div className="aspect-w-16 aspect-h-9">
-          {process.env.GOOGLE_MAPS_API_KEY ? (
+          {isClient && process.env.GOOGLE_MAPS_API_KEY ? (
             <MemoizedGoogleMapsEmbed q={formattedLocations} />
           ) : (
             <div className="bg-gray-200 flex items-center justify-center h-[450px]">
