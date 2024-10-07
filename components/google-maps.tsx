@@ -14,7 +14,7 @@ interface GoogleMapsSectionProps {
 }
 
 const MemoizedGoogleMapsEmbed = memo(function MemoizedGoogleMapsEmbed({ q }: { q: string }) {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY || '';
 
   return (
     <GoogleMapsEmbed
@@ -46,7 +46,7 @@ const GoogleMapsSection = memo(function GoogleMapsSection({ locations }: GoogleM
         </div>
 
         <div className="aspect-w-16 aspect-h-9">
-          {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
+          {process.env.GOOGLE_MAPS_API_KEY ? (
             <MemoizedGoogleMapsEmbed q={formattedLocations} />
           ) : (
             <div className="bg-gray-200 flex items-center justify-center h-[450px]">

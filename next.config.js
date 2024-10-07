@@ -24,9 +24,6 @@ const nextConfig = {
         },
         ],
       },
-    experimental: {
-      googleMaps: true
-    },
       reactStrictMode: false,
 }
 
