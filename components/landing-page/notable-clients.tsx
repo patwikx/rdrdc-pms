@@ -30,7 +30,7 @@ export default function NotableClientPage() {
     <div className="flex flex-col">
       <main className="flex-grow">
                 {/* Notable Clients section */}
-                <section className="py-12 bg-gray-50 overflow-hidden">
+                <section className="py-12 bg-white overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial="initial"

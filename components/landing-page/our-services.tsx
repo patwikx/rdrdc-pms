@@ -21,7 +21,7 @@ export default function OurServicesPage() {
     <div className="flex flex-col">
       <main className="flex-grow">
 {/* Services section */}
-<section id="services" className="py-12 bg-white">
+<section id="services" className="py-12 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial="initial"
