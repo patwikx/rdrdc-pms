@@ -62,7 +62,7 @@ export default function ChatbotWidget() {
           animate="visible"
           exit="exit"
           variants={chatVariants}
-          className="fixed bottom-4 right-4 z-50"
+          className="fixed bottom-8 mr-8 right-4 z-50"
         >
           <AnimatePresence mode="wait">
             {isMinimized ? (
@@ -76,7 +76,7 @@ export default function ChatbotWidget() {
               >
                 <Button
                   onClick={toggleMinimize}
-                  className="rounded-full w-14 h-14 p-0 shadow-lg hover:shadow-xl transition-all duration-300 relative bg-gradient-to-r from-blue-500 to-blue-600"
+                  className="rounded-full w-12 h-12 p-0 shadow-lg hover:shadow-xl transition-all duration-300 relative bg-gradient-to-r from-blue-500 to-blue-600"
                   aria-label="Open chat"
                 >
                   <Avatar className="w-full h-full">
