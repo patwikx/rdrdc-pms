@@ -241,14 +241,24 @@ export const EditableRPTTable: React.FC<EditableRPTTableProps> = ({ propertyId, 
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectGroup>
-                                                            <SelectItem value="Pending Payment">Pending Payment</SelectItem>
                                                             <SelectItem value="Unpaid">Unpaid</SelectItem>
                                                             <SelectItem value="Paid">Paid</SelectItem>
                                                         </SelectGroup>
                                                     </SelectContent>
                                                 </Select>
                                             ) : (
-                                                rpt.Status
+                                                <Badge 
+                                                className="text-md px-3 py-1"
+                                                variant={
+                                                  rpt.Status === 'Unpaid' 
+                                                    ? 'destructive' 
+                                                    : rpt.Status === 'Paid' 
+                                                    ? 'success' // Assuming you want a different variant for Pending
+                                                    : 'success' // For Paid or other statuses
+                                                }
+                                              >
+                                                {rpt.Status}
+                                              </Badge>
                                             )}
                                         </TableCell>
                                     </TableRow>
