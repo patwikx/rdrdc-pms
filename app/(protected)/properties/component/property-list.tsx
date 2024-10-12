@@ -25,7 +25,7 @@ export const revalidate = 0
 
 interface PropertyListProps {}
 
-const PropertyListx: React.FC<PropertyListProps> = () => {
+export const PropertyListx: React.FC<PropertyListProps> = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [properties, setProperties] = useState<Property[]>([])
@@ -482,5 +482,3 @@ const SpaceCard: React.FC<SpaceCardProps> = ({ space }) => (
     </CardContent>
   </Card>
 )
-
-export default PropertyListx
