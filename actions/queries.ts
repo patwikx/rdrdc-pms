@@ -355,7 +355,7 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
             DueDate: values.DueDate,
             Status: values.Status as PaymentStatus,
             custodianRemarks: values.custodianRemarks,
-            updatedBy: values.updatedBy,
+            updatedAt: values.updatedAt,
           },
         });
   
@@ -430,7 +430,6 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
           Status,
           DueDate,
           propertyId,
-          updatedBy,
           custodianRemarks
         }
       });
@@ -464,7 +463,7 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
               DueDate: true,
               Status: true,
               custodianRemarks: true,
-              updatedBy: true,  
+            updatedAt: true,  
             }
           }
         },
