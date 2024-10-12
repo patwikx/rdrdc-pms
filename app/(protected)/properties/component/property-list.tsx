@@ -1,197 +1,260 @@
-'use client';
+'use client'
 
-import React, { Suspense, useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Building, Search, MapPin, LandPlot, DollarSign, AlertTriangle, Users, FileText } from 'lucide-react';
-import { CreatePropertyForm } from './create-property-form';
-import axios from 'axios';
-import { Badge } from '@/components/ui/badge';
-import PropertyLoadingSkeleton from '@/components/skeleton';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import Image from 'next/image';
-import { Property, RPT, Space } from '@/types/type';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar } from '@/components/ui/calendar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { Suspense, useEffect, useState, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import { Building, Search, MapPin, LandPlot, PlusCircle, X } from 'lucide-react'
+import { CreatePropertyForm } from './create-property-form'
+import axios from 'axios'
+import { Badge } from '@/components/ui/badge'
+import Image from 'next/image'
+import { Property, RPT, Space } from '@/types/type'
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Select, SelectContent, SelectItem,  SelectTrigger, SelectValue } from '@/components/ui/select'
+import { SpaceDetailsSheet } from './space-detail-sheet'
+import { EditablePropertyTable } from './editable-property-table'
+import { EditableRPTTable } from './editable-property-rpt'
+import { PropertyListItem } from './property-list-items'
 
-export const revalidate = 0;
+export const revalidate = 0
 
-interface SpaceDetailsDialogProps {
-  space: Space;
-}
+interface PropertyListProps {}
 
-const SpaceDetailsDialog: React.FC<SpaceDetailsDialogProps> = ({ space }) => {
-  const [isOpen, setIsOpen] = React.useState(false)
+const PropertyListx: React.FC<PropertyListProps> = () => {
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [properties, setProperties] = useState<Property[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [selectedType, setSelectedType] = useState<string | null>(null)
 
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: 20 },
+  const fetchProperties = useCallback(async () => {
+    try {
+      const response = await axios.get<Property[]>('/api/fetch-properties')
+      setProperties(response.data)
+    } catch (error) {
+      console.error('Error fetching properties:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchProperties()
+  }, [fetchProperties])
+
+  const filteredProperties = properties.filter(property =>
+    (property.propertyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    property.address?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (!selectedType || property.propertyType === selectedType)
+  )
+
+  const propertyTypes = Array.from(new Set(properties.map(p => p.propertyType)))
+
+  const clearFilters = () => {
+    setSearchTerm('')
+    setSelectedType(null)
   }
 
+  const handlePropertyUpdate = async (updatedProperty: Property) => {
+    try {
+      const response = await axios.put<Property>(`/api/update-property/${updatedProperty.id}`, updatedProperty)
+      const updatedPropertyData = response.data
+      setProperties(prevProperties => 
+        prevProperties.map(prop => prop.id === updatedPropertyData.id ? updatedPropertyData : prop)
+      )
+      setSelectedProperty(updatedPropertyData)
+    } catch (error) {
+      console.error('Error updating property:', error)
+    }
+  }
+
+  const handleRPTUpdate = async (updatedRPT: RPT[]) => {
+    if (!selectedProperty) return;
+  
+    try {
+      const response = await Promise.all(
+        updatedRPT.map(rpt => 
+          axios.put<RPT>(`/api/update-rpt-property/${rpt.id}`, { 
+            TaxDecNo: rpt.TaxDecNo,
+            PaymentMode: rpt.PaymentMode,
+            DueDate: rpt.DueDate,
+            Status: rpt.Status,
+            custodianRemarks: rpt.custodianRemarks,
+          })
+        )
+      );
+  
+      const updatedRPTs = response.map(res => res.data);
+      
+      setProperties(prevProperties => 
+        prevProperties.map(prop => 
+          prop.id === selectedProperty.id 
+            ? { ...prop, rpt: updatedRPTs }
+            : prop
+        )
+      );
+  
+      setSelectedProperty(prev => 
+        prev ? { ...prev, rpt: updatedRPTs } : null
+      );
+  
+    } catch (error) {
+      console.error('Error updating RPT details:', error);
+      alert('Failed to update RPT details. Please try again.');
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button className="mt-2 w-full">View Details</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">{space.spaceNumber}</DialogTitle>
-        </DialogHeader>
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={{
-                visible: { transition: { staggerChildren: 0.1 } }
-              }}
-            >
-              <Tabs defaultValue="info" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="info">Space Information</TabsTrigger>
-                  <TabsTrigger value="rpt">RPT Details</TabsTrigger>
-                </TabsList>
-                <TabsContent value="info">
-  <motion.div variants={cardVariants}>
-    <Card className="shadow-lg rounded-lg overflow-hidden bg-white">
-      <CardHeader className="bg-gradient-to-r from-blue-500 to-green-500 text-white p-4 rounded-t-lg">
-        <CardTitle className="text-2xl font-bold">Space Information</CardTitle>
-      </CardHeader>
-      <CardContent className="p-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center bg-gray-50 p-3 rounded-lg shadow-md">
-            <LandPlot className="mr-2 h-5 w-5 text-blue-500" />
-            <span className="text-lg font-medium text-gray-700">{space.spaceArea} sq ft</span>
-          </div>
-          <div className="flex items-center bg-gray-50 p-3 rounded-lg shadow-md">
-            <Badge
-              className={`px-2 py-1 rounded-lg text-white text-sm font-medium ${
-                space.spaceStatus === 'Occupied' ? 'bg-red-500' : 'bg-green-500'
-              }`}
-            >
-              {space.spaceStatus}
-            </Badge>
-          </div>
-          <div className="flex items-center bg-gray-50 p-3 rounded-lg shadow-md">
-            <DollarSign className="mr-2 h-5 w-5 text-green-500" />
-            <span className="text-lg font-medium text-gray-700">₱{space.rent}</span>
-          </div>
-          <div className="flex items-center bg-gray-50 p-3 rounded-lg shadow-md">
-            <Users className="mr-2 h-5 w-5 text-purple-500" />
-            <span className="text-lg font-medium text-gray-700">Capacity: 50</span>
-          </div>
+    <div className='flex h-screen bg-background'>
+      <main className='flex-1 overflow-hidden flex flex-col'>
+        <Header propertiesCount={properties.length} />
+        <div className='flex-1 flex overflow-hidden'>
+          <PropertySidebar 
+            properties={filteredProperties}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedType={selectedType}
+            setSelectedType={setSelectedType}
+            propertyTypes={propertyTypes}
+            clearFilters={clearFilters}
+            loading={loading}
+            selectedPropertyId={selectedProperty?.id.toString() || null}
+            setSelectedProperty={setSelectedProperty}
+          />
+          <PropertyDetails 
+            selectedProperty={selectedProperty}
+            handlePropertyUpdate={handlePropertyUpdate}
+            handleRPTUpdate={handleRPTUpdate}
+          />
         </div>
-      </CardContent>
-    </Card>
-  </motion.div>
-</TabsContent>
-
-                <TabsContent value="rpt">
-  <motion.div variants={cardVariants}>
-    <Card className="shadow-lg rounded-lg overflow-hidden bg-white">
-      <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 rounded-t-lg">
-        <CardTitle className="text-2xl font-bold">RPT Details</CardTitle>
-      </CardHeader>
-      <CardContent className="p-4">
-        <ScrollArea className="h-full">
-          {space.rpt && space.rpt.length > 0 ? (
-            space.rpt.map((rptDetail, index) => (
-              <motion.div
-                key={rptDetail.id || index}
-                className="p-4 mb-6 bg-gray-50 rounded-lg shadow-md"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-lg font-semibold text-gray-700">Tax Dec No: {rptDetail.TaxDecNo}</h4>
-                </div>
-                <div className="flex items-center mb-2">
-                  <span className="text-gray-600 font-medium mr-2">Status:</span>
-                  <Badge className={`px-2 py-1 rounded-md text-white ${
-                    rptDetail.Status === 'Paid' ? 'bg-green-500' : 'bg-yellow-500'
-                  }`}>
-                    {rptDetail.Status}
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-sm mb-2">
-                  <div className="flex items-center">
-                    <span className="text-gray-600 font-medium mr-2">Due Date:</span>
-                    <span className="text-gray-800">{rptDetail.DueDate}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <FileText className="mr-2 h-4 w-4 text-purple-500" />
-                    <span className="text-gray-600">Payment Mode: {rptDetail.PaymentMode}</span>
-                  </div>
-                </div>
-                {rptDetail.custodianRemarks && (
-                  <div className="mt-2 flex items-start bg-yellow-100 p-2 rounded-lg">
-                    <AlertTriangle className="mr-2 h-4 w-4 text-yellow-500 flex-shrink-0 mt-1" />
-                    <p className="text-sm text-gray-600">{rptDetail.custodianRemarks}</p>
-                  </div>
-                )}
-                {index < space.rpt.length - 1 && <Separator className="my-4" />}
-              </motion.div>
-            ))
-          ) : (
-            <p className="text-center text-gray-600">No RPT details available for this space.</p>
-          )}
-        </ScrollArea>
-      </CardContent>
-    </Card>
-  </motion.div>
-</TabsContent>
-
-              </Tabs>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </DialogContent>
-    </Dialog>
+      </main>
+    </div>
   )
 }
 
-const PropertyList = () => {
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
+interface HeaderProps {
+  propertiesCount: number;
+}
 
-  useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const response = await axios.get('/api/fetch-properties');
-        setProperties(response.data);
-      } catch (error) {
-        console.error('Error fetching properties:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+const Header: React.FC<HeaderProps> = ({ propertiesCount }) => (
+  <motion.div
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3 }}
+    className='p-4'
+  >
+    <div className="flex items-center justify-between mb-4">
+      <h1 className='text-3xl font-bold'>Properties ({propertiesCount})</h1>
+      <CreatePropertyForm />
+    </div>
+    <Separator className='mb-4 w-full' />
+  </motion.div>
+)
 
-    fetchProperties();
-  }, []);
+interface PropertySidebarProps {
+  properties: Property[];
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  selectedType: string | null;
+  setSelectedType: (type: string | null) => void;
+  propertyTypes: string[];
+  clearFilters: () => void;
+  loading: boolean;
+  selectedPropertyId: string | null;
+  setSelectedProperty: (property: Property) => void;
+}
 
-  const filteredProperties = properties.filter(property =>
-    property.propertyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    property.address?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+const PropertySidebar: React.FC<PropertySidebarProps> = ({
+  properties,
+  searchTerm,
+  setSearchTerm,
+  selectedType,
+  setSelectedType,
+  propertyTypes,
+  clearFilters,
+  loading,
+  selectedPropertyId,
+  setSelectedProperty
+}) => (
+  <div className='w-1/3 border-r flex flex-col'>
+    <div className='p-4 space-y-4'>
+      <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <FilterBar 
+        selectedType={selectedType}
+        setSelectedType={setSelectedType}
+        propertyTypes={propertyTypes}
+        clearFilters={clearFilters}
+      />
+      <Separator />
+    </div>
+    <PropertyList 
+      properties={properties}
+      loading={loading}
+      selectedPropertyId={selectedPropertyId}
+      setSelectedProperty={setSelectedProperty}
+    />
+  </div>
+)
 
-  const calculateOccupancyRate = (spaces: Space[]) => {
-    const totalUnits = spaces.length;
-    const occupiedUnits = spaces.filter(space => space.spaceStatus === 'Occupied').length;
-    return totalUnits > 0 ? ((occupiedUnits / totalUnits) * 100).toFixed(2) : 0;
-  };
+interface SearchBarProps {
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+}
 
+const SearchBar: React.FC<SearchBarProps> = ({ searchTerm, setSearchTerm }) => (
+  <div className='flex items-center'>
+    <Input
+      type="text"
+      placeholder="Search properties..."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="flex-grow"
+    />
+    <Button size="icon" className="ml-2">
+      <Search className="h-4 w-4" />
+    </Button>
+  </div>
+)
+
+interface FilterBarProps {
+  selectedType: string | null;
+  setSelectedType: (type: string | null) => void;
+  propertyTypes: string[];
+  clearFilters: () => void;
+}
+
+const FilterBar: React.FC<FilterBarProps> = ({ selectedType, setSelectedType, propertyTypes, clearFilters }) => (
+  <div className='flex items-center space-x-2'>
+    <Select value={selectedType || ''} onValueChange={setSelectedType}>
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder="Filter by property type..." />
+      </SelectTrigger>
+      <SelectContent>
+        {propertyTypes.map((type) => (
+          <SelectItem key={type} value={type}>{type}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+    <Button variant="outline" onClick={clearFilters} className="whitespace-nowrap">
+      <X className="h-4 w-4 mr-2" />
+      Clear
+    </Button>
+  </div>
+)
+
+interface PropertyListProps {
+  properties: Property[];
+  loading: boolean;
+  selectedPropertyId: string | null;
+  setSelectedProperty: (property: Property) => void;
+}
+
+const PropertyList: React.FC<PropertyListProps> = ({ properties, loading, selectedPropertyId, setSelectedProperty }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -200,293 +263,224 @@ const PropertyList = () => {
         staggerChildren: 0.1,
       },
     },
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-  };
+  }
 
   const listItemVariants = {
     hidden: { opacity: 0, x: -20 },
     visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
-  };
+  }
 
   return (
-    <div className='flex h-screen bg-background'>
-      <main className='flex-1 overflow-hidden flex flex-col'>
+    <ScrollArea className="flex-grow">
+      {loading ? (
+        <Suspense fallback={<LoadingSkeleton />}>
+          <LoadingSkeleton />
+        </Suspense>
+      ) : (
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className='mt-4 mb-4'
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-2 p-2 mx-4"
         >
-          <div className="flex items-center justify-between mb-4 ml-4">
-            <h1 className='text-3xl font-bold'>Properties</h1>
-            <div className='mr-8'>
-              <CreatePropertyForm />
-            </div>
-          </div>
-          <Separator className='mb-[-17px]' />
-        </motion.div>
-        <div className='flex-1 flex overflow-hidden'>
-          <div className='w-1/3 border-r p-4 flex flex-col'>
-            <div className='mb-4 flex items-center'>
-              <Input
-                type="text"
-                placeholder="Search properties..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-grow"
+          <AnimatePresence>
+            {properties.map((property) => (
+              <PropertyListItem 
+                key={property.id}
+                property={property}
+                selectedPropertyId={selectedPropertyId}
+                setSelectedProperty={setSelectedProperty}
+                variants={listItemVariants}
               />
-              <Button size="icon" className="ml-2">
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-            <ScrollArea className="flex-grow">
-              {loading ? (
-                <Suspense fallback={<PropertyLoadingSkeleton />}>
-                  {[...Array(5)].map((_, i) => <PropertyLoadingSkeleton key={i} />)}
-                </Suspense>
-              ) : (
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                >
-                  <AnimatePresence>
-                    {filteredProperties.map((property) => (
-                      <motion.div
-                        key={property.id}
-                        variants={listItemVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="hidden"
-                        layout
-                      >
-                        <Card 
-                          className={`mb-4 cursor-pointer hover:bg-accent ${selectedProperty?.id === property.id ? 'bg-accent' : ''}`}
-                          onClick={() => setSelectedProperty(property)}
-                        >
-                          <CardHeader>
-                            <CardTitle className="text-lg">{property.propertyName}</CardTitle>
-                            <CardDescription className="flex items-center">
-                              <MapPin className="mr-2 h-4 w-4" />
-                              {property.address}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-sm text-muted-foreground">
-                              <Badge>{property.propertyType}</Badge> | <Badge variant='pending'>{property.space.length} space</Badge>
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </motion.div>
-              )}
-            </ScrollArea>
-          </div>
-          <div className='flex-1 p-6 overflow-auto'>
-            <ScrollArea>
-              <AnimatePresence mode="wait">
-                {selectedProperty ? (
-                  <motion.div
-                    key={selectedProperty.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-2xl flex flex-col items-start justify-between mr-16">
-                          <div className="flex items-center">
-                            <Building className="mr-2 h-6 w-6" />
-                            {selectedProperty.propertyName}
-                          </div>
-                          <div className="mt-2">
-                            <CardDescription>{selectedProperty.address}</CardDescription>
-                            <CardDescription>{selectedProperty.city}</CardDescription>
-                            <CardDescription>{selectedProperty.province}</CardDescription>
-                          </div>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex gap-2">
-
-                        <Tabs defaultValue="propertyInfo" className="w-[470px]">
-  {/* Tab Headers */}
-  <TabsList className="grid w-full grid-cols-2">
-    <TabsTrigger value="propertyInfo">Property Information</TabsTrigger>
-    <TabsTrigger value="rptDetails">RPT Details</TabsTrigger>
-  </TabsList>
-
-  {/* Property Information Tab */}
-  <TabsContent value="propertyInfo" key="propertyInfo">
-    <motion.div
-      variants={cardVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      transition={{ duration: 0.3 }} // Adjust the duration as needed
-    >
-      <Card className="shadow-lg rounded-lg overflow-hidden">
-        <CardContent className="p-4">
-          <div className="space-y-2">
-            <div className="p-3 border-gray-200">
-              <p className="text-gray-600"><strong>Title No.:</strong> {selectedProperty.titleNo}</p>
-              <p className="text-gray-600"><strong>Lot No.:</strong> {selectedProperty.lotNo}</p>
-              <p className="text-gray-600"><strong>Registered Owner:</strong> {selectedProperty.registeredOwner}</p>
-              <p className="text-gray-600"><strong>Type:</strong> {selectedProperty.propertyType}</p>
-              <p className="text-gray-600"><strong>Total Units:</strong> {selectedProperty.space.length}</p>
-              <p className="text-gray-600"><strong>Occupancy Rate:</strong> {calculateOccupancyRate(selectedProperty.space)}%</p>
-              <p className="text-gray-600">
-                <strong>Rent:</strong> ₱{new Intl.NumberFormat('en-PH', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }).format(selectedProperty.rent)}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  </TabsContent>
-
-  {/* RPT Details Tab */}
-  <TabsContent value="rptDetails" key="rptDetails">
-    <motion.div
-      variants={cardVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      transition={{ duration: 0.3 }} // Adjust the duration as needed
-    >
-      <Card className="shadow-lg rounded-lg overflow-hidden">
-        <CardContent className="p-4">
-          <div className="space-y-2">
-            {selectedProperty.rpt.map((rptDetail, index) => (
-              <div key={rptDetail.id} className={`p-3 ${index < selectedProperty.rpt.length - 1 ? 'border-b border-gray-200' : ''}`}>
-                <p className="text-gray-600"><strong>Tax Dec No:</strong> {rptDetail.TaxDecNo}</p>
-                <p className="text-gray-600"><strong>Title No.:</strong> {selectedProperty.titleNo}</p>
-                <p className="text-gray-600"><strong>Lot No.:</strong> {selectedProperty.lotNo}</p>
-                <p className="text-gray-600"><strong>Registered Owner:</strong> {selectedProperty.registeredOwner}</p>
-                <p className="text-gray-600"><strong>Payment Mode:</strong> {rptDetail.PaymentMode}</p>
-                <p className="text-gray-600"><strong>Due Date:</strong> {rptDetail.DueDate}</p>
-                <p className="text-gray-600">
-                  <strong>Status:</strong> 
-                  <span 
-                    className={`ml-2 px-2 py-1 rounded-md text-white text-sm ${rptDetail.Status === 'Paid' ? 'bg-green-500' : 'bg-yellow-500'}`}
-                  >
-                    {rptDetail.Status}
-                  </span>
-                </p>
-              </div>
             ))}
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  </TabsContent>
-</Tabs>
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </ScrollArea>
+  )
+}
+
+const LoadingSkeleton: React.FC = () => (
+  <div className="p-4 space-y-4 w-full">
+    {[...Array(10)].map((_, i) => (
+      <motion.div
+        key={i}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: i * 0.1 }}
+        className="space-y-2"
+      >
+        <div className="h-5 bg-muted rounded w-3/4"></div>
+        <div className="h-4 bg-muted rounded w-1/2"></div>
+      </motion.div>
+    ))}
+  </div>
+)
 
 
 
+interface PropertyDetailsProps {
+  selectedProperty: Property | null;
+  handlePropertyUpdate: (property: Property) => Promise<void>;
+  handleRPTUpdate: (rpt: RPT[]) => Promise<void>;
+}
 
-                          <div className="ml-auto mt-[-116px]">
-                            <Carousel className="w-[330px] mr-8 mt-4">
-                              <CarouselContent>
-                                {Array.isArray(selectedProperty.attachments) && selectedProperty.attachments.length > 0 ? (
-                                  selectedProperty.attachments.map((attachment) => (
-                                    <CarouselItem key={attachment.id}>
-                                      <motion.div
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.8 }}
-                                        transition={{ duration: 0.3 }}
-                                        className="p-1"
-                                      >
-                                        <Card>
-                                          <CardContent className="flex aspect-[16/9] items-center justify-center p-4">
-                                            <Image
-                                              src={attachment.files}
-                                              alt={`Image for ${selectedProperty.propertyName}`}
-                                              layout="responsive"
-                                              width={300}
-                                              height={150}
-                                              className="object-cover"
-                                              onError={() => console.error(`Failed to load image: ${attachment.files}`)}
-                                            />
-                                          </CardContent>
-                                        </Card>
-                                      </motion.div>
-                                    </CarouselItem>
-                                  ))
-                                ) : (
-                                  <div className="flex items-center justify-center w-full h-full">
-                                    <p>No images available for this property.</p>
-                                  </div>
-                                )}
-                              </CarouselContent>
-                              <CarouselPrevious />
-                              <CarouselNext />
-                            </Carousel>
-                          </div>
-                        </div>
-                        <Separator className="my-4" />
-                        <div>
-                          <h3 className="font-semibold mb-2">List of spaces</h3>
-                          <motion.div 
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                          >
-                            {selectedProperty.space.map((unit) => (
-                              <motion.div key={unit.id} variants={cardVariants}>
-                                <Card>
-                                  <CardHeader>
-                                    <CardTitle className="text-lg">{unit.spaceNumber}</CardTitle>
-                                  </CardHeader>
-                                  <CardContent>
-                                    <div className='flex'>
-                                      <p className="flex items-center">
-                                        <LandPlot className="mr-2 h-4 w-4" /> {unit.spaceArea} sq ft
-                                      </p>
-                                      <Badge className={`ml-20 ${unit.spaceStatus === 'Occupied' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
-                                        {unit.spaceStatus}
-                                      </Badge>
-                                    </div>
-                                    <SpaceDetailsDialog space={unit} />
-                                  </CardContent>
-                                </Card>
-                              </motion.div>
-                            ))}
-                          </motion.div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="flex items-center justify-center h-full"
-                  >
-                    <p className="text-muted-foreground">Select a property to view details</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </ScrollArea>
-          </div>
+const PropertyDetails: React.FC<PropertyDetailsProps> = ({ selectedProperty, handlePropertyUpdate, handleRPTUpdate }) => (
+  <div className='flex-1 overflow-auto'>
+    <ScrollArea className="h-full">
+      <AnimatePresence mode="wait">
+        {selectedProperty ? (
+          <PropertyCard 
+            property={selectedProperty}
+            handlePropertyUpdate={handlePropertyUpdate}
+            handleRPTUpdate={handleRPTUpdate}
+          />
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex items-center justify-center h-full"
+          >
+            <p className="text-muted-foreground">Select a property to view details</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </ScrollArea>
+  </div>
+)
+
+interface PropertyCardProps {
+  property: Property;
+  handlePropertyUpdate: (property: Property) => Promise<void>;
+  handleRPTUpdate: (rpt: RPT[]) => Promise<void>;
+}
+
+const PropertyCard: React.FC<PropertyCardProps> = ({ property, handlePropertyUpdate, handleRPTUpdate }) => (
+  <motion.div
+    key={property.id}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    transition={{ duration: 0.3 }}
+    className="p-6"
+  >
+    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 mb-[-10px] mt-[-10px]">
+      <CardHeader>
+        <CardTitle className="text-2xl flex items-center">
+          <Building className="mr-2 h-6 w-6" />
+          {property.propertyName}
+        </CardTitle>
+        <CardDescription className='flex justify-start'>
+          <MapPin className='w-6 h-6 mr-1'/>{property.address}, {property.city}, {property.province}
+        
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <EditablePropertyTable 
+          property={property} 
+          onUpdate={handlePropertyUpdate} 
+        />
+        <EditableRPTTable 
+          propertyId={property.id}
+          rptDetails={property.rpt} 
+          onUpdate={handleRPTUpdate}
+        />
+        <Separator className="mt-8" />
+        <PropertyImages property={property} />
+        <SpaceList spaces={property.space} />
+      </CardContent>
+    </Card>
+  </motion.div>
+)
+
+interface PropertyImagesProps {
+  property: Property;
+}
+
+const PropertyImages: React.FC<PropertyImagesProps> = ({ property }) => (
+  <Accordion type="single" collapsible className="mb-6">
+    <AccordionItem value="property-images">
+      <AccordionTrigger>
+        <h3 className="text-lg font-semibold">Attached Property Images</h3>
+      </AccordionTrigger>
+      <AccordionContent>
+        <div className="grid grid-cols-4 gap-4 mt-3">
+          {Array.isArray(property.attachments) && property.attachments.length > 0 ? (
+            property.attachments.map((attachment) => (
+              <Dialog key={attachment.id}>
+                <DialogTrigger>
+                  <Image
+                    src={attachment.files}
+                    alt={`Image for ${property.propertyName}`}
+                    width={150}
+                    height={100}
+                    className="object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity shadow-sm hover:shadow-md"
+                  />
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl">
+                  <Image
+                    src={attachment.files}
+                    alt={`Image for ${property.propertyName}`}
+                    width={800}
+                    height={600}
+                    className="object-contain rounded-md"
+                  />
+                </DialogContent>
+              </Dialog>
+            ))
+          ) : (
+            <div className="col-span-4 h-[100px] flex flex-col items-center justify-center bg-muted rounded-md space-y-2">
+                <p className="text-muted-foreground">No images available</p>
+                <Button>Upload Images</Button>
+            </div>
+          )}
         </div>
-      </main>
-    </div>
-  );
-};
+      </AccordionContent>
+    </AccordionItem>
+  </Accordion>
+)
 
-export default PropertyList;
+interface SpaceListProps {
+  spaces: Space[];
+}
+
+const SpaceList: React.FC<SpaceListProps> = ({ spaces }) => (
+  <div>
+    <div className="flex justify-between items-center mb-4">
+      <h3 className="text-lg font-semibold">List of Spaces ({spaces.length})</h3>
+      <Button><PlusCircle className="w-5 h-5 mr-2" />Add New Space</Button>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {spaces.map((unit) => (
+        <SpaceCard key={unit.id} space={unit} />
+      ))}
+    </div>
+  </div>
+)
+
+interface SpaceCardProps {
+  space: Space;
+}
+
+const SpaceCard: React.FC<SpaceCardProps> = ({ space }) => (
+  <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
+    <CardHeader>
+      <CardTitle className="text-lg">{space.spaceNumber}</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className="flex justify-between items-center mb-2">
+        <p className="flex items-center">
+          <LandPlot className="mr-2 h-4 w-4" /> {space.spaceArea} sq ft
+        </p>
+        <Badge variant={space.spaceStatus === 'Occupied' ? 'destructive' : 'success'}>
+          {space.spaceStatus}
+        </Badge>
+      </div>
+      <SpaceDetailsSheet space={space} />
+    </CardContent>
+  </Card>
+)
+
+export default PropertyListx

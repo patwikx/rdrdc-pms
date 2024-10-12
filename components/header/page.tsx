@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { Bell, LogOut, Moon, Settings, Sun } from 'lucide-react';
 import {
@@ -14,15 +14,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { signOut } from '@/auth';
+import { signOut } from 'next-auth/react'; // Import from next-auth/react
 import { ModeToggle } from '../theme-toggle';
-
 
 const Header = () => {
   const router = useRouter();
   const session = useCurrentUser();
-
   
+  const [openNotifications, setOpenNotifications] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   // Sample notifications data
   const notifications = [
     { id: 1, message: 'Your property has been booked!', date: '2 hours ago' },
@@ -30,14 +31,28 @@ const Header = () => {
     { id: 3, message: 'Payment received for your last booking.', date: '3 days ago' },
   ];
 
-  const [openNotifications, setOpenNotifications] = useState(false);
+  // Function to handle window resize and check for mobile view
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth > 768); // Set sidebar open based on screen width
+    };
+
+    // Check on initial load
+    handleResize();
+
+    // Attach resize event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup listener on unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div>
       <header className="flex items-center justify-between border-b p-4">
         <div className="flex items-center space-x-4 justify-end w-full mr-2">
           <div className='mt-[-7px]'>
-          <ModeToggle />
+            <ModeToggle />
           </div>
 
           <Button variant="outline" size="icon" onClick={() => setOpenNotifications(!openNotifications)}>
@@ -72,7 +87,7 @@ const Header = () => {
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => signOut}>
+              <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
@@ -80,28 +95,35 @@ const Header = () => {
           </DropdownMenu>
         </div>
 
-       {/* Notifications Dropdown */}
-{openNotifications && (
-  <div className="absolute right-4 top-14 z-10 w-64 rounded-md border border-gray-200 bg-background shadow-md">
-    <div className="p-4">
-      <p className="font-semibold">Notifications</p>
-      <DropdownMenuSeparator />
-      <div className="max-h-60 overflow-y-auto">
-        {notifications.length > 0 ? (
-          notifications.map(notification => (
-            <div key={notification.id} className="p-2 hover:bg-accent hover:bg-opacity-30 transition-colors">
-              <p className="text-sm text-foreground">{notification.message}</p>
-              <p className="text-xs text-muted-foreground">{notification.date}</p>
+        {/* Notifications Dropdown */}
+        {openNotifications && (
+          <div className="absolute right-4 top-14 z-10 w-64 rounded-md border border-gray-200 bg-background shadow-md">
+            <div className="p-4">
+              <p className="font-semibold">Notifications</p>
+              <DropdownMenuSeparator />
+              <div className="max-h-60 overflow-y-auto">
+                {notifications.length > 0 ? (
+                  notifications.map(notification => (
+                    <div key={notification.id} className="p-2 hover:bg-accent hover:bg-opacity-30 transition-colors">
+                      <p className="text-sm text-foreground">{notification.message}</p>
+                      <p className="text-xs text-muted-foreground">{notification.date}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="p-2 text-sm text-muted-foreground">No notifications</p>
+                )}
+              </div>
             </div>
-          ))
-        ) : (
-          <p className="p-2 text-sm text-muted-foreground">No notifications</p>
+          </div>
         )}
-      </div>
-    </div>
-  </div>
-)}
       </header>
+
+      {/* Sidebar - Toggle visibility based on isSidebarOpen state */}
+      {isSidebarOpen && (
+        <aside className="sidebar">
+          {/* Sidebar content goes here */}
+        </aside>
+      )}
     </div>
   );
 };

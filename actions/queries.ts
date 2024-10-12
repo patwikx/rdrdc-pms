@@ -209,7 +209,7 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
       return { error: "Invalid fields!" };
     }
   
-    const { propertyCode, propertyName, titleNo, lotNo, registeredOwner, address, city, province, propertyType } = validatedFields.data;
+    const { propertyCode, propertyName, titleNo, lotNo, registeredOwner, address, city, province, propertyType, leasableArea } = validatedFields.data;
   
     await prisma.property.create({
       data: {
@@ -221,7 +221,8 @@ import { PaymentStatus, PaymentType, Prisma } from "@prisma/client";
         address,
         city,
         province,
-        propertyType
+        propertyType,
+        leasableArea
       }
     });
     revalidatePath('/properties')

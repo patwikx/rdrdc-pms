@@ -117,6 +117,9 @@ export const CreatePropertySchema = z.object({
   }),
   propertyType: z.string().min(1, {
     message: "Property Type is required."
+  }),
+  leasableArea: z.string().min(1, {
+    message: "Leasable Area is required."
   })
 })
 

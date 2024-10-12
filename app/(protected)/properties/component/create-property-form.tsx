@@ -37,6 +37,7 @@ import {
   DialogDescription,
   DialogContent,
 } from "@/components/ui/dialog";
+import { PlusCircle } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -57,6 +58,7 @@ export const CreatePropertyForm = () => {
       address: "",
       province: "",
       propertyType: "",
+      leasableArea: "",
     },
   });
 
@@ -85,7 +87,7 @@ export const CreatePropertyForm = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>Add Property</Button>
+        <Button><PlusCircle className="w-5 h-5 mr-2" />Add Property</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -189,17 +191,31 @@ export const CreatePropertyForm = () => {
                                 disabled={isPending}
                               >
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select role..." />
+                                  <SelectValue placeholder="Select property type..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value={UserRole.Staff}>User</SelectItem>
-                                  <SelectItem value={UserRole.Manager}>Manager</SelectItem>
-                                  <SelectItem value={UserRole.Supervisor}>Supervisor</SelectItem>
-                                  <SelectItem value={UserRole.Tenant}>Tenant</SelectItem>
+                                  <SelectItem value='Commercial'>Commercial</SelectItem>
+                                  <SelectItem value='Residential'>Residential</SelectItem>
+                                  <SelectItem value='Land'>Land</SelectItem>
                                 </SelectContent>
                               </Select>
                             )}
                           />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="w-1/2">
+                <FormField
+                    control={form.control}
+                    name="leasableArea"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-semibold">Leasable Area</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled={isPending} type='number' />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -258,7 +274,7 @@ export const CreatePropertyForm = () => {
             <FormError message={error} />
             <FormSuccess message={success} />
             <Button disabled={isPending} type="submit" className="w-full">
-              Create an account
+              Save New Property
             </Button>
           </form>
         </Form>

@@ -15,14 +15,17 @@ export async function GET() {
         lotNo: true,
         address: true,
         city: true,
+        leasableArea: true,
         province: true,
         propertyType: true,
         createdAt: true,
+        updatedAt: true, // Ensure this field exists in your schema
         space: { // Include the space relation
           select: {
             id: true,
             spaceNumber: true,
             spaceArea: true,
+            spaceRate: true,
             spaceStatus: true,
             spaceRemarks: true,
             rpt: { // Include the rpt relation for each space
@@ -56,6 +59,9 @@ export async function GET() {
             files: true
           }
         }
+      },
+      orderBy: {
+        updatedAt: 'desc', // Order by the updatedAt field in descending order
       },
     });
 

@@ -35,6 +35,7 @@ export type Property = {
   address: string;
   propertyType: string;
   units: number;
+  leasableArea: string;
   rent: number;
   space: Space[]; 
   rpt: RPT[];
@@ -46,6 +47,7 @@ export type Space = {
   spaceArea: string;
   spaceNumber: string;
   spaceStatus: string;
+  spaceRate: string;
   spaceId: string;
   rent: string;
   createdAt: string;
@@ -53,12 +55,14 @@ export type Space = {
 };
 
 export type RPT = {
-  id: string;
+  id?: string | null;
   TaxDecNo: string;
   PaymentMode: String;
   DueDate: string;
   Status: string;
   custodianRemarks: string;
+  propertyId?: string;
+  spaceId?: string;
 };
 
 export type Attachments = {

@@ -85,9 +85,9 @@ model Property {
   city            String
   province        String
   propertyType    String
-  oRate           String?
+  leasableArea    String?
   createdAt       DateTime      @default(now())
-  updatedBy       String?
+  updatedAt       DateTime      @updatedAt
   attachments     Attachments[]
   rpt             RPT[]
   Lease           Lease[]
@@ -98,6 +98,7 @@ model Space {
   id           String   @id @default(cuid())
   spaceNumber  String
   spaceArea    String
+  spaceRate    String?
   spaceStatus  String?
   spaceRemarks String?
   propertyId   String
@@ -106,6 +107,7 @@ model Space {
   tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
   rpt          RPT[]
+  updatedAt    DateTime @updatedAt
 }
 
 model Lease {
@@ -117,6 +119,7 @@ model Lease {
   rent       String
   status     String
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model RPT {
@@ -127,7 +130,7 @@ model RPT {
   Status           PaymentStatus
   custodianRemarks String
   createdAt        DateTime      @default(now())
-  updatedBy        String?
+  updatedAt        DateTime      @updatedAt
   deletedAt        DateTime?
   propertyId       String?
   property         Property?     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
@@ -141,6 +144,7 @@ model Attachments {
   files      String
   createdAt  DateTime  @default(now())
   createdBy  String
+  updatedAt  DateTime  @updatedAt
   propertyId String?
   property   Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   rptId      String?
