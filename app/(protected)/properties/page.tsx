@@ -48,4 +48,3 @@ const PropertyPage = () => {
 }
 
 export default PropertyPage
-export { PropertyListx }
