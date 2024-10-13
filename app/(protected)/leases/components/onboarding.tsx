@@ -1,202 +1,298 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 import { motion } from 'framer-motion'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 
+interface Space {
+  id: string;
+  spaceNumber: string;
+  spaceArea: string;
+  spaceRate: string | null;
+  spaceStatus: string | null;
+  propertyId: string;
+  totalSpaceRent: string;
+}
+
+interface Property {
+  id: string;
+  propertyName: string;
+  propertyCode: string;
+}
+
+interface FormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  contactNo: string;
+  address: string;
+  propertyId: string;
+  spaceId: string;
+  rent: string;
+  leaseStartDate: string;
+  leaseEndDate: string;
+}
+
+const initialFormData: FormData = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  contactNo: '',
+  address: '',
+  propertyId: '',
+  spaceId: '',
+  rent: '',
+  leaseStartDate: '',
+  leaseEndDate: '',
+}
+
 const steps = [
-    { title: 'Personal Information', component: PersonalInformationForm },
-    { title: 'Lease Details', component: LeaseDetailsForm },
-    { title: 'Payment Information', component: PaymentInformationForm },
-    { title: 'Additional Information', component: AdditionalInformationForm },
-    { title: 'Confirmation', component: ConfirmationStep },
-  ]
-  
-  export default function TenantOnboarding() {
-    const [currentStep, setCurrentStep] = useState(0)
-  
-    const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1))
-    const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0))
-  
-    const CurrentComponent = steps[currentStep].component
+  { title: 'Personal Information', component: PersonalInformationForm },
+  { title: 'Lease Details', component: LeaseDetailsForm },
+  { title: 'Confirmation', component: ConfirmationStep },
+]
+
+export default function TenantOnboarding() {
+  const [currentStep, setCurrentStep] = useState(0)
+  const [formData, setFormData] = useState<FormData>(initialFormData)
+  const [properties, setProperties] = useState<Property[]>([])
+  const [vacantSpaces, setVacantSpaces] = useState<Space[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetchOnboardingData()
+  }, [])
+
+  const fetchOnboardingData = async () => {
+    setIsLoading(true)
+    try {
+      const response = await axios.get('/api/fetch-vacant-spaces')
+      setProperties(response.data.properties)
+      setVacantSpaces(response.data.vacantSpaces)
+    } catch (error) {
+      console.error('Error fetching onboarding data:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1))
+  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0))
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+
+    // If the changed field is spaceId, update the rent
+    if (name === 'spaceId') {
+      const selectedSpace = vacantSpaces.find(space => space.id === value)
+      if (selectedSpace) {
+        setFormData(prev => ({ ...prev, rent: selectedSpace.totalSpaceRent }))
+      }
+    }
+  }
+
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.post('/api/onboard-tenant', formData)
+      console.log('Tenant onboarded successfully:', response.data)
+      // Handle success (e.g., show a success message, reset form, close dialog)
+    } catch (error) {
+      console.error('Error onboarding tenant:', error)
+      // Handle error (e.g., show error message)
+    }
+  }
+
+  const CurrentComponent = steps[currentStep].component
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
 
   return (
-   
     <div className="flex">
       <div className="flex-1 p-8">
-      <Dialog>
-        <DialogTrigger asChild>
+        <Dialog>
+          <DialogTrigger asChild>
             <Button>Add New Tenant</Button>
-        </DialogTrigger>
-        <DialogContent className="w-full max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle>{steps[currentStep].title}</CardTitle>
-            <CardDescription>Step {currentStep + 1} of {steps.length}</CardDescription>
-            <Separator />
-          </CardHeader>
+          </DialogTrigger>
+          <DialogContent className="w-full max-w-2xl mx-auto">
+            <CardHeader>
+              <CardTitle>{steps[currentStep].title}</CardTitle>
+              <CardDescription>Step {currentStep + 1} of {steps.length}</CardDescription>
+              <Separator />
+            </CardHeader>
 
-          <CardContent>
-            <motion.div
-              key={currentStep}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="relative w-full"
-            >
-              <CurrentComponent />
-            </motion.div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={prevStep} disabled={currentStep === 0}>
-              Previous
-            </Button>
-            <Button onClick={nextStep} disabled={currentStep === steps.length - 1}>
-              {currentStep === steps.length - 1 ? 'Submit' : 'Next'}
-            </Button>
-          </CardFooter>
-           </DialogContent>
-           </Dialog>
+            <CardContent>
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="relative w-full"
+              >
+                <CurrentComponent 
+                  formData={formData} 
+                  handleInputChange={handleInputChange} 
+                  properties={properties}
+                  vacantSpaces={vacantSpaces} 
+                />
+              </motion.div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button variant="outline" onClick={prevStep} disabled={currentStep === 0}>
+                Previous
+              </Button>
+              <Button onClick={currentStep === steps.length - 1 ? handleSubmit : nextStep}>
+                {currentStep === steps.length - 1 ? 'Submit' : 'Next'}
+              </Button>
+            </CardFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
 }
 
-
-function PersonalInformationForm() {
+function PersonalInformationForm({ formData, handleInputChange }: { formData: FormData; handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="firstName">First Name</Label>
-          <Input id="firstName" placeholder="John" />
+          <Input id="firstName" name="firstName" value={formData.firstName} onChange={handleInputChange} placeholder="John" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="lastName">Last Name</Label>
-          <Input id="lastName" placeholder="Doe" />
+          <Input id="lastName" name="lastName" value={formData.lastName} onChange={handleInputChange} placeholder="Doe" />
         </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" placeholder="john.doe@example.com" />
+        <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="john.doe@example.com" />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="phone">Phone Number</Label>
-        <Input id="phone" type="tel" placeholder="(123) 456-7890" />
+        <Label htmlFor="contactNo">Phone Number</Label>
+        <Input id="contactNo" name="contactNo" type="tel" value={formData.contactNo} onChange={handleInputChange} placeholder="(123) 456-7890" />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="dob">Date of Birth</Label>
-        <Input id="dob" type="date" />
+        <Label htmlFor="address">Address</Label>
+        <Input id="address" name="address" value={formData.address} onChange={handleInputChange} placeholder="123 Main St, City, State, ZIP" />
       </div>
     </div>
   )
 }
 
-function LeaseDetailsForm() {
-  return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="propertyAddress">Property Address</Label>
-        <Input id="propertyAddress" placeholder="123 Main St, City, State, ZIP" />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="leaseStart">Lease Start Date</Label>
-          <Input id="leaseStart" type="date" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="leaseEnd">Lease End Date</Label>
-          <Input id="leaseEnd" type="date" />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="rentAmount">Monthly Rent Amount</Label>
-        <Input id="rentAmount" type="number" placeholder="1000" />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="securityDeposit">Security Deposit</Label>
-        <Input id="securityDeposit" type="number" placeholder="1000" />
-      </div>
-    </div>
-  )
-}
+function LeaseDetailsForm({ 
+  formData, 
+  handleInputChange, 
+  properties, 
+  vacantSpaces 
+}: { 
+  formData: FormData; 
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void; 
+  properties: Property[];
+  vacantSpaces: Space[];
+}) {
+  const filteredSpaces = vacantSpaces.filter(space => space.propertyId === formData.propertyId)
 
-function PaymentInformationForm() {
-  return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Preferred Payment Method</Label>
-        <RadioGroup defaultValue="card">
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="card" id="card" />
-            <Label htmlFor="card">Credit/Debit Card</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="bank" id="bank" />
-            <Label htmlFor="bank">Bank Transfer</Label>
-          </div>
-        </RadioGroup>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="cardNumber">Card Number</Label>
-        <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="expiryDate">Expiry Date</Label>
-          <Input id="expiryDate" placeholder="MM/YY" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="cvv">CVV</Label>
-          <Input id="cvv" placeholder="123" />
-        </div>
-      </div>
-    </div>
-  )
-}
+  const formatCurrency = (amount: string | number): string => {
+    const number = parseFloat(String(amount));
+    if (isNaN(number)) return '₱0.00'; // Return a default value if the input is invalid
+  
+    return '₱' + number.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
 
-function AdditionalInformationForm() {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="emergencyContact">Emergency Contact</Label>
-        <Input id="emergencyContact" placeholder="Name and phone number" />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="pets">Do you have any pets?</Label>
-        <Select>
-          <SelectTrigger id="pets">
-            <SelectValue placeholder="Select..." />
+        <Label htmlFor="propertyId">Property</Label>
+        <Select 
+          name="propertyId" 
+          value={formData.propertyId} 
+          onValueChange={(value) => handleInputChange({ target: { name: 'propertyId', value } } as any)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select a property" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="no">No</SelectItem>
-            <SelectItem value="dog">Dog</SelectItem>
-            <SelectItem value="cat">Cat</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
+            {properties.map((property) => (
+              <SelectItem key={property.id} value={property.id}>
+                {property.propertyName}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="specialRequests">Special Requests or Notes</Label>
-        <Textarea id="specialRequests" placeholder="Any additional information..." />
+        <Label htmlFor="spaceId">Space</Label>
+        <Select 
+          name="spaceId" 
+          value={formData.spaceId} 
+          onValueChange={(value) => handleInputChange({ target: { name: 'spaceId', value } } as any)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select a space" />
+          </SelectTrigger>
+          <SelectContent>
+            {filteredSpaces.map((space) => (
+              <SelectItem key={space.id} value={space.id}>
+                {space.spaceNumber}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="rent">Monthly Rent Amount</Label>
+        <Input 
+          id="rent" 
+          name="rent" 
+          type="text" 
+          value={formatCurrency(formData.rent)} 
+          readOnly 
+          className="bg-gray-100"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="leaseStartDate">Lease Start Date</Label>
+          <Input id="leaseStartDate" name="leaseStartDate" type="date" value={formData.leaseStartDate} onChange={handleInputChange} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="leaseEndDate">Lease End Date</Label>
+          <Input id="leaseEndDate" name="leaseEndDate" type="date" value={formData.leaseEndDate} onChange={handleInputChange} />
+        </div>
       </div>
     </div>
   )
 }
 
-function ConfirmationStep() {
+function ConfirmationStep({ formData }: { formData: FormData }) {
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold">Confirmation</h2>
-      <p>Thank you for completing the onboarding process! Your information has been submitted successfully.</p>
-      <Button variant="outline" onClick={() => alert('Redirect to homepage or next action')}>Go to Dashboard</Button>
+    <div>
+      <h2 className="text-lg font-semibold">Confirm Your Details</h2>
+      <div className="space-y-2">
+        <p><strong>Name:</strong> {formData.firstName} {formData.lastName}</p>
+        <p><strong>Email:</strong> {formData.email}</p>
+        <p><strong>Contact No:</strong> {formData.contactNo}</p>
+        <p><strong>Address:</strong> {formData.address}</p>
+        <p><strong>Property ID:</strong> {formData.propertyId}</p>
+        <p><strong>Space ID:</strong> {formData.spaceId}</p>
+        <p><strong>Rent:</strong> {formData.rent}</p>
+        <p><strong>Lease Start Date:</strong> {formData.leaseStartDate}</p>
+        <p><strong>Lease End Date:</strong> {formData.leaseEndDate}</p>
+      </div>
     </div>
   )
 }

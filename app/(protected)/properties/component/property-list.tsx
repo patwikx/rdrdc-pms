@@ -515,20 +515,32 @@ interface SpaceCardProps {
 }
 
 const SpaceCard: React.FC<SpaceCardProps> = ({ space }) => (
-  <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
-    <CardHeader>
-      <CardTitle className="text-lg">{space.spaceNumber}</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="flex justify-between items-center mb-2">
+<Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
+  <CardHeader>
+    <CardTitle className="text-lg">{space.spaceNumber}</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col">
+        <span className="text-sm text-muted-foreground">Area</span>
         <p className="flex items-center">
           <LandPlot className="mr-2 h-4 w-4" /> {space.spaceArea} sq ft
         </p>
+      </div>
+      <div className="flex flex-col">
+        <span className="text-sm text-muted-foreground">Status</span>
         <Badge variant={space.spaceStatus === 'Occupied' ? 'destructive' : 'success'}>
           {space.spaceStatus}
         </Badge>
       </div>
-      <SpaceDetailsSheet space={space} />
-    </CardContent>
-  </Card>
+    </div>
+    <div className="flex flex-col mb-4">
+      <span className="text-sm text-muted-foreground">Monthly Rent</span>
+      <p>
+        ₱ {space.totalSpaceRent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </p>
+    </div>
+    <SpaceDetailsSheet space={space} />
+  </CardContent>
+</Card>
 )
