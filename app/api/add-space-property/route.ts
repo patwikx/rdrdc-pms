@@ -4,11 +4,11 @@ import { prisma } from '@/lib/db'; // Update this import according to your proje
 
 export async function POST(request: Request) {
   try {
-    const { spaceNumber, spaceArea, spaceRate, spaceStatus, spaceRemarks, propertyId } = await request.json();
+    const { spaceNumber, spaceArea, spaceRate, spaceStatus, spaceRemarks, totalSpaceRent, propertyId } = await request.json();
 
     const newRPT = await prisma.space.create({
       data: {
-        spaceNumber, spaceArea, spaceRate, spaceStatus, spaceRemarks,
+        spaceNumber, spaceArea, spaceRate, spaceStatus, spaceRemarks, totalSpaceRent,
         ...(propertyId && { property: { connect: { id: propertyId } } }) // Only connect if propertyId is provided
       },
     });

@@ -39,13 +39,10 @@ const calculateOccupancyRate = (spaces: Space[], totalLeasableArea: number): str
     : '0.00'
 }
 
-const calculateTotalRent = (spaces: Space[]): string => {
-  const totalRent = spaces.reduce((total: number, space: Space) => {
-    return total + (parseFloat(space.spaceRate) * parseFloat(space.spaceArea));
-  }, 0);
-
-  return formatCurrency(totalRent);
-};
+// New function to calculate totalSpaceRent
+const calculateTotalSpaceRent = (spaces: Space[]): number => {
+  return spaces.reduce((total, space) => total + space.totalSpaceRent, 0);
+}
 
 export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ property, onUpdate, onSpaceAdded }) => {
   const [isEditing, setIsEditing] = useState(false)
@@ -55,11 +52,9 @@ export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ pr
   useEffect(() => {
     setEditedProperty(property)
     const occupancyRate = calculateOccupancyRate(property.space, parseFloat(property.leasableArea))
-    const totalRent = calculateTotalRent(property.space)
     setEditedProperty(prev => ({
       ...prev,
       occupancyRate,
-      rent: totalRent
     }))
   }, [property])
 
@@ -93,6 +88,8 @@ export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ pr
       setIsLoading(false)
     }
   }
+
+  const totalSpaceRent = calculateTotalSpaceRent(property.space);
 
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
@@ -199,15 +196,7 @@ export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ pr
                 )}
               </TableCell>
               <TableCell className='text-center items-center'>
-                {isEditing ? (
-                  <Input
-                    name="rent"
-                    value={editedProperty.rent}
-                    onChange={handleInputChange}
-                  />
-                ) : (
-                  editedProperty.rent // Use the updated rent value from editedProperty
-                )}
+                <Label>{formatCurrency(totalSpaceRent)}</Label>
               </TableCell>
               <TableCell className='text-center items-center'>
                 <Label className='font-bold text-lg'>{editedProperty.occupancyRate}%</Label>

@@ -51,6 +51,7 @@ export type Space = {
   spaceRate: string;
   spaceId: string;
   rent: string;
+  totalSpaceRent: number;
   createdAt: string;
   rpt: RPT[];
 };

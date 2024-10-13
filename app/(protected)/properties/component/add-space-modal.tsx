@@ -26,12 +26,25 @@ export default function AddSpaceModal({ propertyId, onSpaceAdded, onPropertyUpda
     spaceArea: '',
     spaceRate: '',
     spaceStatus: '',
-    spaceRemarks: ''
+    spaceRemarks: '',
+    totalSpaceRent: '',
   })
   const [loading, setLoading] = useState(false)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSpaceData({ ...spaceData, [e.target.name]: e.target.value })
+    const { name, value } = e.target
+    setSpaceData(prevState => {
+      const updatedData = { ...prevState, [name]: value }
+
+      // Recalculate totalSpaceRent when spaceArea or spaceRate changes
+      if (name === 'spaceArea' || name === 'spaceRate') {
+        const area = parseFloat(updatedData.spaceArea) || 0
+        const rate = parseFloat(updatedData.spaceRate) || 0
+        updatedData.totalSpaceRent = (area * rate).toFixed(2)
+      }
+
+      return updatedData
+    })
   }
 
   const handleStatusChange = (value: string) => {
@@ -50,17 +63,22 @@ export default function AddSpaceModal({ propertyId, onSpaceAdded, onPropertyUpda
 
   const calculateTotalRent = (spaces: Space[]): string => {
     const totalRent = spaces.reduce((total: number, space: Space) => {
-      return total + (parseFloat(space.spaceRate) * parseFloat(space.spaceArea));
-    }, 0);
+      return total + (parseFloat(space.spaceRate) * parseFloat(space.spaceArea))
+    }, 0)
 
-    return totalRent.toFixed(2);
+    return totalRent.toFixed(2)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     try {
-      const response = await axios.post<Space>('/api/add-space-property', { ...spaceData, propertyId })
+      const response = await axios.post<Space>('/api/add-space-property', { 
+        ...spaceData, 
+        totalSpaceRent: parseFloat(spaceData.totalSpaceRent), // Convert to Float
+        propertyId 
+      })
+      
       const newSpace: Space = {
         ...response.data,
         id: response.data.id || '',
@@ -93,7 +111,8 @@ export default function AddSpaceModal({ propertyId, onSpaceAdded, onPropertyUpda
         spaceArea: '',
         spaceRate: '',
         spaceStatus: '',
-        spaceRemarks: ''
+        spaceRemarks: '',
+        totalSpaceRent: '',
       })
     } catch (error) {
       console.error('Error adding new space:', error)
@@ -155,6 +174,16 @@ export default function AddSpaceModal({ propertyId, onSpaceAdded, onPropertyUpda
                   name="spaceRate"
                   value={spaceData.spaceRate}
                   onChange={handleInputChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="totalSpaceRent">Total Rent</Label>
+                <Input
+                  id="totalSpaceRent"
+                  name="totalSpaceRent"
+                  value={spaceData.totalSpaceRent}
+                  type='number'
+                  readOnly
                 />
               </div>
               <div className="space-y-2">

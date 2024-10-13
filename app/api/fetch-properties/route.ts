@@ -28,6 +28,7 @@ export async function GET() {
             spaceRate: true,
             spaceStatus: true,
             spaceRemarks: true,
+            totalSpaceRent: true,
             rpt: { // Include the rpt relation for each space
               select: {
                 id: true,

@@ -95,19 +95,20 @@ model Property {
 }
 
 model Space {
-  id           String   @id @default(cuid())
-  spaceNumber  String
-  spaceArea    String
-  spaceRate    String?
-  spaceStatus  String?
-  spaceRemarks String?
-  propertyId   String
-  property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  tenantId     String?
-  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-  rpt          RPT[]
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  spaceNumber    String
+  spaceArea      String
+  spaceRate      String?
+  totalSpaceRent Float?
+  spaceStatus    String?
+  spaceRemarks   String?
+  propertyId     String
+  property       Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenantId       String?
+  tenant         Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  rpt            RPT[]
+  updatedAt      DateTime @updatedAt
 }
 
 model Lease {
