@@ -151,12 +151,12 @@ export const EditableRPTTable: React.FC<EditableRPTTableProps> = ({ propertyId, 
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                {!isAdding && <TableHead className='text-center'>Select</TableHead>}
-                                <TableHead className='text-center'>Tax Dec No</TableHead>
-                                <TableHead className='text-center'>Payment Mode</TableHead>
-                                <TableHead className='text-center'>Due Date</TableHead>
-                                <TableHead className='text-center'>Custodian Remarks</TableHead>
-                                <TableHead className='text-center'>Status</TableHead>
+                                {!isAdding && <TableHead className='text-center items-center font-bold'>Select</TableHead>}
+                                <TableHead className='text-center items-center font-bold'>Tax Dec No</TableHead>
+                                <TableHead className='text-center items-center font-bold'>Payment Mode</TableHead>
+                                <TableHead className='text-center items-center font-bold'>Due Date</TableHead>
+                                <TableHead className='text-center items-center font-bold'>Custodian Remarks</TableHead>
+                                <TableHead className='text-center items-center font-bold'>Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>

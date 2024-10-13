@@ -122,13 +122,13 @@ export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ pr
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className='text-center items-center'>Registered Owner</TableHead>
-              <TableHead className='text-center items-center'>Title No.</TableHead>
-              <TableHead className='text-center items-center'>Lot No.</TableHead>
-              <TableHead className='text-center items-center'>Property Type</TableHead>
-              <TableHead className='text-center items-center'>Leasable Area</TableHead>
-              <TableHead className='text-center items-center'>Property Revenue</TableHead>
-              <TableHead className='text-center items-center'>Occupancy Rate</TableHead>
+              <TableHead className='text-center items-center font-bold'>Registered Owner</TableHead>
+              <TableHead className='text-center items-center font-bold'>Title No.</TableHead>
+              <TableHead className='text-center items-center font-bold'>Lot No.</TableHead>
+              <TableHead className='text-center items-center font-bold'>Property Type</TableHead>
+              <TableHead className='text-center items-center font-bold'>Leasable Area</TableHead>
+              <TableHead className='text-center items-center font-bold'>Property Revenue</TableHead>
+              <TableHead className='text-center items-center font-bold'>Occupancy Rate</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
