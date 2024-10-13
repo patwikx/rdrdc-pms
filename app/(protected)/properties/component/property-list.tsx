@@ -444,7 +444,7 @@ const PropertyImages: React.FC<PropertyImagesProps> = ({ property }) => (
   <Accordion type="single" collapsible className="mb-6">
     <AccordionItem value="property-images">
       <AccordionTrigger>
-        <h3 className="text-lg font-semibold">Attached Property Images</h3>
+        <h3 className="text-lg font-semibold">Attached Property Images ({property.attachments.length})</h3>
       </AccordionTrigger>
       <AccordionContent>
         <div className="grid grid-cols-4 gap-4 mt-3">

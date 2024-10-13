@@ -94,7 +94,7 @@ export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ pr
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-semibold justify-between">Property Details</CardTitle>
+        <CardTitle className="text-lg font-semibold justify-between">Property Details  <Button size='sm' variant='outline' className='ml-4 h-7'><Download className='h-4 w-6 mr-2' /><p className='mr-3'>Export</p></Button></CardTitle>
         {isEditing ? (
           <div>
             <Button onClick={handleSave} className="mr-2" disabled={isLoading}>
@@ -116,7 +116,7 @@ export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ pr
             Edit
           </Button>
         )}
-        <Button><Download className='h-4 w-6 mr-2' size='sm' />Export</Button>
+       
       </CardHeader>
       <CardContent>
         <Table>

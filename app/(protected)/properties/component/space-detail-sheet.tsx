@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Building, LandPlot, AlertTriangle, Users, FileText, DollarSign, XCircle, CheckCircle2 } from 'lucide-react'
+import { Building, LandPlot, AlertTriangle, Users, FileText, DollarSign, XCircle, CheckCircle2, Edit } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Space } from '@/types/type'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -16,6 +16,8 @@ export const revalidate = 0
 interface SpaceDetailsSheetProps {
   space: Space
 }
+
+// ... (imports remain unchanged)
 
 export const SpaceDetailsSheet: React.FC<SpaceDetailsSheetProps> = ({ space }) => {
   const [isOpen, setIsOpen] = React.useState(false)
@@ -28,7 +30,7 @@ export const SpaceDetailsSheet: React.FC<SpaceDetailsSheetProps> = ({ space }) =
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" className="mt-2 w-full">View Details</Button>
+        <Button className="mt-2 w-full">View Details</Button>
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-[600px] overflow-y-auto">
         <SheetHeader className="mb-6">
@@ -49,32 +51,42 @@ export const SpaceDetailsSheet: React.FC<SpaceDetailsSheetProps> = ({ space }) =
             <motion.div variants={cardVariants}>
               <Card className="mb-6 shadow-md hover:shadow-lg transition-shadow duration-300">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-semibold">Space Information</CardTitle>
+                  <CardTitle className="text-2xl font-semibold flex justify-between items-center">
+                    <span>Space Information</span>
+                    <Button className="ml-4"><Edit className='w-4 h-4 mr-4' />Edit</Button>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <LandPlot className="mr-2 h-5 w-5 text-primary" />
-                        <span className="text-lg font-medium">{space.spaceArea} sq ft</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm text-muted-foreground mb-1">Area</span>
+                        <div className="flex">
+                          <LandPlot className="mr-2 h-5 w-5 text-primary" />
+                          <span className="text-lg font-medium">{space.spaceArea} sq ft</span>
+                        </div>
                       </div>
-                      <Badge variant={space.spaceStatus === 'Occupied' ? 'destructive' : 'success'} className="text-md px-3 py-1 mr-36">
-                        {space.spaceStatus}
-                      </Badge>
+                      <div className="flex flex-col mr-36">
+                        <span className="text-sm text-muted-foreground mb-1">Status</span>
+                        <Badge
+                          variant={space.spaceStatus === 'Occupied' ? 'destructive' : 'success'}
+                          className="text-md px-3 py-1"
+                        >
+                          {space.spaceStatus}
+                        </Badge>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col">
                         <span className="text-sm text-muted-foreground">Rate</span>
                         <div className="flex items-center">
-                          <DollarSign className="mr-1 h-4 w-4 text-primary" />
                           <span className="text-lg font-medium">₱{space.spaceRate.toLocaleString()}.00</span>
                         </div>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm text-muted-foreground">Capacity</span>
+                        <span className="text-sm text-muted-foreground">Monthly Rent</span>
                         <div className="flex items-center">
-                          <Users className="mr-1 h-4 w-4 text-primary" />
-                          <span className="text-lg font-medium">50 people</span>
+                          <span className="text-lg font-medium">₱{space.totalSpaceRent.toLocaleString()}.00</span>
                         </div>
                       </div>
                     </div>
@@ -96,7 +108,10 @@ export const SpaceDetailsSheet: React.FC<SpaceDetailsSheetProps> = ({ space }) =
             <motion.div variants={cardVariants}>
               <Card className="mb-6 shadow-md hover:shadow-lg transition-shadow duration-300">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-semibold">RPT Details</CardTitle>
+                <CardTitle className="text-2xl font-semibold flex justify-between items-center">
+                    <span>RPT Details</span>
+                    <Button className="ml-4"><Edit className='w-4 h-4 mr-4' />Edit</Button>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {space.rpt && space.rpt.length > 0 ? (
