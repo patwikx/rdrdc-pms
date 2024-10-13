@@ -20,6 +20,7 @@ import { SpaceDetailsSheet } from './space-detail-sheet'
 import { EditablePropertyTable } from './editable-property-table'
 import { EditableRPTTable } from './editable-property-rpt'
 import { PropertyListItem } from './property-list-items'
+import AddSpaceModal from './add-space-modal'
 
 export const revalidate = 0
 
@@ -47,20 +48,11 @@ export const PropertyListx: React.FC<PropertyListProps> = () => {
     fetchProperties()
   }, [fetchProperties])
 
-  const filteredProperties = properties.filter(property =>
-    (property.propertyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    property.address?.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (!selectedType || property.propertyType === selectedType)
-  )
+  const handlePropertyCreated = useCallback(() => {
+    fetchProperties();
+  }, [fetchProperties]);
 
-  const propertyTypes = Array.from(new Set(properties.map(p => p.propertyType)))
-
-  const clearFilters = () => {
-    setSearchTerm('')
-    setSelectedType(null)
-  }
-
-  const handlePropertyUpdate = async (updatedProperty: Property) => {
+  const handlePropertyUpdate = useCallback(async (updatedProperty: Property) => {
     try {
       const response = await axios.put<Property>(`/api/update-property/${updatedProperty.id}`, updatedProperty)
       const updatedPropertyData = response.data
@@ -71,9 +63,9 @@ export const PropertyListx: React.FC<PropertyListProps> = () => {
     } catch (error) {
       console.error('Error updating property:', error)
     }
-  }
+  }, [])
 
-  const handleRPTUpdate = async (updatedRPT: RPT[]) => {
+  const handleRPTUpdate = useCallback(async (updatedRPT: RPT[]) => {
     if (!selectedProperty) return;
   
     try {
@@ -107,12 +99,53 @@ export const PropertyListx: React.FC<PropertyListProps> = () => {
       console.error('Error updating RPT details:', error);
       alert('Failed to update RPT details. Please try again.');
     }
-  };
+  }, [selectedProperty]);
+
+  const handleSpaceAdded = useCallback((newSpace: Space) => {
+    if (selectedProperty) {
+      const updatedProperty = { ...selectedProperty };
+      updatedProperty.space = [...updatedProperty.space, newSpace];
+      
+      // Recalculate occupancy rate
+      const occupiedArea = updatedProperty.space
+        .filter(space => space.spaceStatus === 'Occupied')
+        .reduce((sum, space) => sum + parseFloat(space.spaceArea), 0);
+      const totalLeasableArea = parseFloat(updatedProperty.leasableArea);
+      updatedProperty.occupancyRate = totalLeasableArea > 0
+        ? ((occupiedArea / totalLeasableArea) * 100).toFixed(2)
+        : '0.00';
+
+      // Recalculate property revenue
+      const totalRent = updatedProperty.space.reduce((total, space) => {
+        return total + (parseFloat(space.spaceRate) * parseFloat(space.spaceArea));
+      }, 0);
+      updatedProperty.rent = totalRent.toFixed(2);
+
+      setSelectedProperty(updatedProperty);
+      handlePropertyUpdate(updatedProperty);
+    }
+  }, [selectedProperty, handlePropertyUpdate]);
+
+  const filteredProperties = properties.filter(property =>
+    (property.propertyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    property.address?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (!selectedType || property.propertyType === selectedType)
+  )
+
+  const propertyTypes = Array.from(new Set(properties.map(p => p.propertyType)))
+
+  const clearFilters = () => {
+    setSearchTerm('')
+    setSelectedType(null)
+  }
 
   return (
     <div className='flex h-screen bg-background'>
       <main className='flex-1 overflow-hidden flex flex-col'>
-        <Header propertiesCount={properties.length} />
+        <div className='flex justify-between items-center p-4'>
+          <Header propertiesCount={properties.length} />
+          <CreatePropertyForm onPropertyCreated={handlePropertyCreated} />
+        </div>
         <div className='flex-1 flex overflow-hidden'>
           <PropertySidebar 
             properties={filteredProperties}
@@ -126,16 +159,19 @@ export const PropertyListx: React.FC<PropertyListProps> = () => {
             selectedPropertyId={selectedProperty?.id.toString() || null}
             setSelectedProperty={setSelectedProperty}
           />
+          
           <PropertyDetails 
             selectedProperty={selectedProperty}
             handlePropertyUpdate={handlePropertyUpdate}
             handleRPTUpdate={handleRPTUpdate}
+            handleSpaceAdded={handleSpaceAdded}
           />
         </div>
       </main>
     </div>
   )
 }
+
 
 interface HeaderProps {
   propertiesCount: number;
@@ -148,11 +184,9 @@ const Header: React.FC<HeaderProps> = ({ propertiesCount }) => (
     transition={{ duration: 0.3 }}
     className='p-4'
   >
-    <div className="flex items-center justify-between mb-4">
+    <div className="flex items-center justify-between">
       <h1 className='text-3xl font-bold'>Properties ({propertiesCount})</h1>
-      <CreatePropertyForm />
     </div>
-    <Separator className='mb-4 w-full' />
   </motion.div>
 )
 
@@ -317,15 +351,14 @@ const LoadingSkeleton: React.FC = () => (
   </div>
 )
 
-
-
 interface PropertyDetailsProps {
   selectedProperty: Property | null;
   handlePropertyUpdate: (property: Property) => Promise<void>;
   handleRPTUpdate: (rpt: RPT[]) => Promise<void>;
+  handleSpaceAdded: (newSpace: Space) => void;
 }
 
-const PropertyDetails: React.FC<PropertyDetailsProps> = ({ selectedProperty, handlePropertyUpdate, handleRPTUpdate }) => (
+const PropertyDetails: React.FC<PropertyDetailsProps> = ({ selectedProperty, handlePropertyUpdate, handleRPTUpdate, handleSpaceAdded }) => (
   <div className='flex-1 overflow-auto'>
     <ScrollArea className="h-full">
       <AnimatePresence mode="wait">
@@ -334,6 +367,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ selectedProperty, han
             property={selectedProperty}
             handlePropertyUpdate={handlePropertyUpdate}
             handleRPTUpdate={handleRPTUpdate}
+            handleSpaceAdded={handleSpaceAdded}
           />
         ) : (
           <motion.div
@@ -341,23 +375,24 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ selectedProperty, han
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="flex items-center justify-center h-full"
+            className="flex items-center justify-center h-full w-full"
           >
-            <p className="text-muted-foreground">Select a property to view details</p>
+            <p className="text-muted-foreground mt-80">Select a property to view details</p>
           </motion.div>
         )}
       </AnimatePresence>
     </ScrollArea>
   </div>
-)
+);
 
 interface PropertyCardProps {
   property: Property;
   handlePropertyUpdate: (property: Property) => Promise<void>;
   handleRPTUpdate: (rpt: RPT[]) => Promise<void>;
+  handleSpaceAdded: (newSpace: Space) => void;
 }
 
-const PropertyCard: React.FC<PropertyCardProps> = ({ property, handlePropertyUpdate, handleRPTUpdate }) => (
+const PropertyCard: React.FC<PropertyCardProps> = ({ property, handlePropertyUpdate, handleRPTUpdate, handleSpaceAdded }) => (
   <motion.div
     key={property.id}
     initial={{ opacity: 0, y: 20 }}
@@ -368,19 +403,19 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, handlePropertyUpd
   >
     <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 mb-[-10px] mt-[-10px]">
       <CardHeader>
-        <CardTitle className="text-2xl flex items-center">
+        <CardTitle className="text-2xl flex  items-center">
           <Building className="mr-2 h-6 w-6" />
           {property.propertyName}
         </CardTitle>
         <CardDescription className='flex justify-start'>
           <MapPin className='w-6 h-6 mr-1'/>{property.address}, {property.city}, {property.province}
-        
         </CardDescription>
       </CardHeader>
       <CardContent>
         <EditablePropertyTable 
           property={property} 
           onUpdate={handlePropertyUpdate} 
+          onSpaceAdded={handleSpaceAdded}
         />
         <EditableRPTTable 
           propertyId={property.id}
@@ -389,7 +424,13 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, handlePropertyUpd
         />
         <Separator className="mt-8" />
         <PropertyImages property={property} />
-        <SpaceList spaces={property.space} />
+        <SpaceList 
+          spaces={property.space} 
+          propertyId={property.id.toString()}
+          onSpaceAdded={handleSpaceAdded}
+          onPropertyUpdate={handlePropertyUpdate}
+          property={property}
+        />
       </CardContent>
     </Card>
   </motion.div>
@@ -444,13 +485,22 @@ const PropertyImages: React.FC<PropertyImagesProps> = ({ property }) => (
 
 interface SpaceListProps {
   spaces: Space[];
+  propertyId: string;
+  onSpaceAdded: (newSpace: Space) => void;
+  onPropertyUpdate: (updatedProperty: Property) => void;
+  property: Property;
 }
 
-const SpaceList: React.FC<SpaceListProps> = ({ spaces }) => (
+const SpaceList: React.FC<SpaceListProps> = ({ spaces, propertyId, onSpaceAdded, onPropertyUpdate, property }) => (
   <div>
     <div className="flex justify-between items-center mb-4">
       <h3 className="text-lg font-semibold">List of Spaces ({spaces.length})</h3>
-      <Button><PlusCircle className="w-5 h-5 mr-2" />Add New Space</Button>
+      <AddSpaceModal 
+        propertyId={propertyId} 
+        onSpaceAdded={onSpaceAdded} 
+        onPropertyUpdate={onPropertyUpdate}
+        property={property}
+      />
     </div>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {spaces.map((unit) => (

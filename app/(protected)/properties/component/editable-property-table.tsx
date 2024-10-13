@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { X, Pencil, Save, Loader } from 'lucide-react'
+import { X, Pencil, Save, Loader, Download } from 'lucide-react'
 import { Property, Space } from '@/types/type'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -16,12 +16,52 @@ export const revalidate = 0;
 interface EditablePropertyTableProps {
   property: Property
   onUpdate: (updatedProperty: Property) => Promise<void>
+  onSpaceAdded: (newSpace: Space) => void
 }
 
-export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ property, onUpdate }) => {
+// Moved formatCurrency function above calculateTotalRent
+const formatCurrency = (amount: number): string => {
+  return amount.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'PHP',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+const calculateOccupancyRate = (spaces: Space[], totalLeasableArea: number): string => {
+  const occupiedArea = spaces
+    .filter(space => space.spaceStatus === 'Occupied')
+    .reduce((sum, space) => sum + parseFloat(space.spaceArea), 0)
+
+  return totalLeasableArea > 0
+    ? ((occupiedArea / totalLeasableArea) * 100).toFixed(2)
+    : '0.00'
+}
+
+const calculateTotalRent = (spaces: Space[]): string => {
+  const totalRent = spaces.reduce((total: number, space: Space) => {
+    return total + (parseFloat(space.spaceRate) * parseFloat(space.spaceArea));
+  }, 0);
+
+  return formatCurrency(totalRent);
+};
+
+export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ property, onUpdate, onSpaceAdded }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editedProperty, setEditedProperty] = useState(property)
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    setEditedProperty(property)
+    const occupancyRate = calculateOccupancyRate(property.space, parseFloat(property.leasableArea))
+    const totalRent = calculateTotalRent(property.space)
+    setEditedProperty(prev => ({
+      ...prev,
+      occupancyRate,
+      rent: totalRent
+    }))
+  }, [property])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -54,42 +94,13 @@ export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ pr
     }
   }
 
-  const calculateOccupancyRate = (spaces: Space[], totalLeasableArea: number): string => {
-    const occupiedArea = spaces
-      .filter(space => space.spaceStatus === 'Occupied')
-      .reduce((sum, space) => sum + parseFloat(space.spaceArea), 0)
-
-    return totalLeasableArea > 0
-      ? ((occupiedArea / totalLeasableArea) * 100).toFixed(2)
-      : '0.00'
-  }
-
-  // Currency formatting function to mimic PHP's number_format
-  const formatCurrency = (amount: number): string => {
-    return amount.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'PHP',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
-
-  // New function to calculate total rent from spaces
-  const calculateTotalRent = (spaces: Space[]): string => {
-    const totalRent = spaces.reduce((total: number, space: Space) => {
-      return total + (parseFloat(space.spaceRate) * parseFloat(space.spaceArea));
-    }, 0);
-
-    return formatCurrency(totalRent); // Return formatted currency
-  };
-    
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-semibold">Property Details</CardTitle>
+        <CardTitle className="text-lg font-semibold justify-between">Property Details</CardTitle>
         {isEditing ? (
           <div>
-            <Button onClick={handleSave} size="sm" className="mr-2" disabled={isLoading}>
+            <Button onClick={handleSave} className="mr-2" disabled={isLoading}>
               {isLoading ? (
                 <Loader className="w-4 h-4 mr-2 animate-spin" />
               ) : (
@@ -97,17 +108,18 @@ export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ pr
               )}
               Save
             </Button>
-            <Button onClick={() => setIsEditing(false)} size="sm" variant="outline">
+            <Button onClick={() => setIsEditing(false)} variant="outline">
               <X className="w-4 h-4 mr-2" />
               Cancel
             </Button>
           </div>
         ) : (
-          <Button onClick={() => setIsEditing(true)} size="sm">
-            <Pencil className="w-4 h-4 mr-2" />
+          <Button onClick={() => setIsEditing(true)}>
+            <Pencil className="w-4 h-4 mr-2" size='sm' />
             Edit
           </Button>
         )}
+        <Button><Download className='h-4 w-6 mr-2' size='sm' />Export</Button>
       </CardHeader>
       <CardContent>
         <Table>
@@ -118,7 +130,7 @@ export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ pr
               <TableHead className='text-center items-center'>Lot No.</TableHead>
               <TableHead className='text-center items-center'>Property Type</TableHead>
               <TableHead className='text-center items-center'>Leasable Area</TableHead>
-              <TableHead className='text-center items-center'>Rent Revenue</TableHead>
+              <TableHead className='text-center items-center'>Property Revenue</TableHead>
               <TableHead className='text-center items-center'>Occupancy Rate</TableHead>
             </TableRow>
           </TableHeader>
@@ -187,18 +199,18 @@ export const EditablePropertyTable: React.FC<EditablePropertyTableProps> = ({ pr
                 )}
               </TableCell>
               <TableCell className='text-center items-center'>
-                  {isEditing ? (
+                {isEditing ? (
                   <Input
                     name="rent"
                     value={editedProperty.rent}
                     onChange={handleInputChange}
                   />
                 ) : (
-                  calculateTotalRent(editedProperty.space) // Show formatted total rent here
-                    )}
-                </TableCell>
+                  editedProperty.rent // Use the updated rent value from editedProperty
+                )}
+              </TableCell>
               <TableCell className='text-center items-center'>
-                <Label className='font-bold text-lg'>{calculateOccupancyRate(editedProperty.space, parseFloat(editedProperty.leasableArea))}%</Label>
+                <Label className='font-bold text-lg'>{editedProperty.occupancyRate}%</Label>
               </TableCell>
             </TableRow>
           </TableBody>

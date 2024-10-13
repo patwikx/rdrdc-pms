@@ -4,8 +4,7 @@ import * as z from "zod";
 import { useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import { CreatePropertySchema, RegisterUserSchema } from "@/schemas";
+import { CreatePropertySchema } from "@/schemas";
 import { Input } from "@/components/ui/input";
 import {
   Form,
@@ -25,10 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserRole } from "@prisma/client";
-import { useCurrentUser } from "@/hooks/use-current-user";
-
-import { createProperty, registerUser } from "@/actions/queries";
+import { createProperty } from "@/actions/queries";
 import {
   Dialog,
   DialogHeader,
@@ -41,11 +37,15 @@ import { PlusCircle } from "lucide-react";
 
 export const revalidate = 0;
 
-export const CreatePropertyForm = () => {
+interface CreatePropertyFormProps {
+  onPropertyCreated: () => void;
+}
+
+export const CreatePropertyForm: React.FC<CreatePropertyFormProps> = ({ onPropertyCreated }) => {
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
-  const user = useCurrentUser();
+  const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm<z.infer<typeof CreatePropertySchema>>({
     resolver: zodResolver(CreatePropertySchema),
@@ -59,6 +59,7 @@ export const CreatePropertyForm = () => {
       province: "",
       propertyType: "",
       leasableArea: "",
+      registeredOwner: "",
     },
   });
 
@@ -73,6 +74,8 @@ export const CreatePropertyForm = () => {
 
           if (!data.error) {
             form.reset();
+            onPropertyCreated(); // Call the callback function to update the property list
+            setIsOpen(false); // Close the dialog
           }
         })
         .finally(() => {

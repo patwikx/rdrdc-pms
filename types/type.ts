@@ -35,8 +35,9 @@ export type Property = {
   address: string;
   propertyType: string;
   units: number;
+  occupancyRate?: string;
   leasableArea: string;
-  rent: number;
+  rent: string;
   space: Space[]; 
   rpt: RPT[];
   attachments: Attachments[]
