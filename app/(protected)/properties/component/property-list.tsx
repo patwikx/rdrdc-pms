@@ -21,6 +21,7 @@ import { EditableRPTTable } from './editable-property-rpt'
 import { PropertyListItem } from './property-list-items'
 import AddSpaceModal from './add-space-modal'
 import { handleExportProperties } from './actions/export-excel'
+import { FaFileExcel, FaFilePdf, FaFileWord } from 'react-icons/fa'
 
 export const revalidate = 0
 
@@ -149,7 +150,7 @@ export const PropertyListx: React.FC<PropertyListProps> = () => {
           <Header propertiesCount={properties.length} />
           </div>
           <div className='flex justify-end items-center mr-4'>
-          <Button className='mr-4' onClick={handleExportProperties}><Download className='h-5 w-5 mr-2' />Export Properties</Button>
+          <Button className='mr-4' variant='outline' onClick={handleExportProperties}><FaFileExcel className='h-5 w-5 mr-2' />Export Properties</Button>
           <CreatePropertyForm onPropertyCreated={handlePropertyCreated} />
           </div>
           </div>
@@ -442,52 +443,100 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, handlePropertyUpd
   </motion.div>
 )
 
-interface PropertyImagesProps {
-  property: Property;
+
+interface Attachment {
+  id: string;
+  files: string;
 }
 
-const PropertyImages: React.FC<PropertyImagesProps> = ({ property }) => (
-  <Accordion type="single" collapsible className="mb-6">
-    <AccordionItem value="property-images">
-      <AccordionTrigger>
-        <h3 className="text-lg font-semibold">Attached Property Images ({property.attachments.length})</h3>
-      </AccordionTrigger>
-      <AccordionContent>
-        <div className="grid grid-cols-4 gap-4 mt-3">
-          {Array.isArray(property.attachments) && property.attachments.length > 0 ? (
-            property.attachments.map((attachment) => (
-              <Dialog key={attachment.id}>
-                <DialogTrigger>
-                  <Image
-                    src={attachment.files}
-                    alt={`Image for ${property.propertyName}`}
-                    width={150}
-                    height={100}
-                    className="object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity shadow-sm hover:shadow-md"
-                  />
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl">
-                  <Image
-                    src={attachment.files}
-                    alt={`Image for ${property.propertyName}`}
-                    width={800}
-                    height={600}
-                    className="object-contain rounded-md"
-                  />
-                </DialogContent>
-              </Dialog>
-            ))
-          ) : (
-            <div className="col-span-4 h-[100px] flex flex-col items-center justify-center bg-muted rounded-md space-y-2">
-                <p className="text-muted-foreground">No images available</p>
-                <Button>Upload Images</Button>
-            </div>
-          )}
-        </div>
-      </AccordionContent>
-    </AccordionItem>
-  </Accordion>
-)
+interface PropertyImagesProps {
+  property: {
+    attachments: Attachment[];
+    propertyName: string;
+  };
+}
+
+const PropertyImages: React.FC<PropertyImagesProps> = ({ property }) => {
+  const [mimeTypes, setMimeTypes] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    const fetchMimeTypes = async () => {
+      const mimeTypeMap: { [key: string]: string } = {};
+
+      await Promise.all(
+        property.attachments.map(async (attachment) => {
+          try {
+            const response = await fetch(attachment.files, { method: 'HEAD' });
+            const mimeType = response.headers.get("Content-Type") || "";
+            mimeTypeMap[attachment.id] = mimeType;
+          } catch (error) {
+            console.error("Failed to fetch MIME type for:", attachment.files);
+          }
+        })
+      );
+
+      setMimeTypes(mimeTypeMap);
+    };
+
+    fetchMimeTypes();
+  }, [property.attachments]);
+
+  return (
+    <Accordion type="single" collapsible className="mb-6">
+      <AccordionItem value="property-images">
+        <AccordionTrigger>
+          <h3 className="text-lg font-semibold">
+            Attached Property Documents & Images ({property.attachments.length})
+          </h3>
+        </AccordionTrigger>
+        <AccordionContent>
+          <div className="grid grid-cols-4 gap-4 mt-3">
+            {Array.isArray(property.attachments) && property.attachments.length > 0 ? (
+              property.attachments.map((attachment) => {
+                const { files, id } = attachment;
+                const mimeType = mimeTypes[id] || "";
+                const isImage = mimeType.startsWith("image/");
+                const isPdf = mimeType === "application/pdf";
+                const isExcel = mimeType === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || mimeType === "application/vnd.ms-excel";
+                const isWord = mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || mimeType === "application/msword";
+
+                return (
+                  <div key={id}>
+                    {isImage ? (
+                      <Image
+                        src={files}
+                        alt={`Image for ${property.propertyName}`}
+                        width={150}
+                        height={100}
+                        className="object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity shadow-sm hover:shadow-md"
+                      />
+                    ) : (
+                      <a
+                        href={files}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center justify-center w-36 h-28 bg-muted rounded-md cursor-pointer hover:opacity-80 transition-opacity shadow-sm hover:shadow-md"
+                      >
+                        {isPdf && <FaFilePdf size={48} className="text-red-600" />}
+                        {isExcel && <FaFileExcel size={48} className="text-green-600" />}
+                        {isWord && <FaFileWord size={48} className="text-blue-600" />}
+                      </a>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <div className="col-span-4 h-[100px] flex flex-col items-center justify-center bg-muted rounded-md space-y-2">
+                <p className="text-muted-foreground">No documents or images available</p>
+                <Button>Upload Files</Button>
+              </div>
+            )}
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+};
 
 interface SpaceListProps {
   spaces: Space[];
