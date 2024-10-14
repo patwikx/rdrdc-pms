@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react'
 import { PropertyListx } from './component/property-list'
 import axios from 'axios'
 import { Property } from '@/types/type'
-import { Separator } from '@/components/ui/separator'
+import Footer from '@/components/footer/footer'
 
 const PropertyPage = () => {
   const [properties, setProperties] = useState<Property[]>([])

@@ -34,7 +34,6 @@ export default async function RootLayout({
           <Toaster />
           {children}
           </ThemeProvider>
-          <Footer />
         </body>
       </html>
     </SessionProvider>

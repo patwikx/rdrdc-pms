@@ -17,7 +17,10 @@ import {
   Receipt,
   BarChart2,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft,
+  ChevronLeftSquare,
+  ChevronRightSquare
 } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -46,14 +49,14 @@ const menuItems = [
   { icon: MonitorIcon, label: 'System Admin', href: '/system-admin' },
 ]
 
-const Sidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+export default function Sidebar() {
+  const [isCollapsed, setIsCollapsed] = useState(true)
   const [isReportsOpen, setIsReportsOpen] = useState(false)
   const pathname = usePathname()
 
   return (
     <motion.aside
-      initial={{ width: 240 }}
+      initial={{ width: 80 }}
       animate={{ width: isCollapsed ? 80 : 240 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
       className="h-screen bg-card text-card-foreground border-r flex flex-col"
@@ -65,11 +68,10 @@ const Sidebar = () => {
             alt='Logo'
             width={35}
             height={35}
-            onClick={() => setIsCollapsed(!isCollapsed)}
             className="cursor-pointer ml-[1.5px]"
           />
           <motion.h2
-            initial={{ opacity: 1 }}
+            initial={{ opacity: 0 }}
             animate={{ opacity: isCollapsed ? 0 : 1 }}
             transition={{ duration: 0.2 }}
             className={`text-lg font-semibold overflow-hidden whitespace-nowrap ${isCollapsed ? "hidden" : ""}`}
@@ -94,15 +96,15 @@ const Sidebar = () => {
                       variant="ghost"
                       className={cn(
                         "w-full justify-between",
-                        pathname.startsWith(item.href) && "bg-primary text-primary-foreground"
+                        pathname.startsWith(item.href) && "bg-gray-200/70 text-primary-foreground"
                       )}
                     >
                       <div className="flex items-center">
                         <div className={`flex items-center justify-center w-8 h-8 transition-all ${isCollapsed ? "mx-auto" : "mr-2"}`}>
-                          <item.icon className="h-5 w-5 flex-shrink-0" />
+                          <item.icon className="h-5 w-5 flex-shrink-0 text-primary" />
                         </div>
                         <motion.span
-                          initial={{ opacity: 1, width: 'auto' }}
+                          initial={{ opacity: 0, width: 0 }}
                           animate={{ opacity: isCollapsed ? 0 : 1, width: isCollapsed ? 0 : 'auto' }}
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden whitespace-nowrap"
@@ -114,32 +116,31 @@ const Sidebar = () => {
                     </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="space-y-2 mt-2">
-  <AnimatePresence>
-    {!isCollapsed && item.subItems.map((subItem) => (
-      <motion.div
-        key={subItem.href}
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: 'auto' }}
-        exit={{ opacity: 0, height: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        <Link
-          href={subItem.href}
-          className={cn(
-            "flex items-center space-x-2 rounded-lg px-3 py-2 transition-colors ml-8",
-            pathname === subItem.href 
-              ? "bg-primary text-primary-foreground" 
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-          )}
-        >
-          <subItem.icon className="h-4 w-4 flex-shrink-0" />
-          <span>{subItem.label}</span>
-        </Link>
-      </motion.div>
-    ))}
-  </AnimatePresence>
-</CollapsibleContent>
-
+                    <AnimatePresence>
+                      {!isCollapsed && item.subItems.map((subItem) => (
+                        <motion.div
+                          key={subItem.href}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Link
+                            href={subItem.href}
+                            className={cn(
+                              "flex items-center space-x-2 rounded-lg px-3 py-2 transition-colors ml-8",
+                              pathname === subItem.href 
+                                ? "bg-gray-200/70 text-primary-foreground" 
+                                : "text-muted-foreground hover:bg-gray-200/70 hover:text-accent-foreground"
+                            )}
+                          >
+                            <subItem.icon className="h-4 w-4 flex-shrink-0 text-primary" />
+                            <span>{subItem.label}</span>
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </CollapsibleContent>
                 </Collapsible>
               ) : (
                 <TooltipProvider>
@@ -150,15 +151,15 @@ const Sidebar = () => {
                         className={cn(
                           "flex items-center space-x-2 rounded-lg px-3 py-2 transition-colors",
                           pathname === item.href 
-                            ? "bg-primary text-primary-foreground" 
-                            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                            ? "bg-gray-200/70 text-primary-foreground" 
+                            : "text-muted-foreground hover:bg-gray-200/70 hover:text-accent-foreground"
                         )}
                       >
                         <div className={`flex items-center justify-center w-8 h-8 transition-all ${isCollapsed ? "mx-auto" : "mr-2"}`}>
-                          <item.icon className="h-5 w-5 flex-shrink-0" />
+                          <item.icon className="h-5 w-5 flex-shrink-0 text-primary" />
                         </div>
                         <motion.span
-                          initial={{ opacity: 1, width: 'auto' }}
+                          initial={{ opacity: 0, width: 0 }}
                           animate={{ opacity: isCollapsed ? 0 : 1, width: isCollapsed ? 0 : 'auto' }}
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden whitespace-nowrap"
@@ -178,13 +179,34 @@ const Sidebar = () => {
         </ul>
       </nav>
       
-      <div className="p-4 mt-auto">
-        <Button variant="outline" className="w-full justify-start">
+      <div className="p-4 mt-auto space-y-2">
+        <Button
+          variant="ghost"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="w-full justify-start"
+        >
           <div className={`flex items-center justify-center w-8 h-8 transition-all ${isCollapsed ? "mx-auto" : "mr-2"}`}>
-            <Home className="h-4 w-4" />
+            {isCollapsed ? (
+              <ChevronRightSquare className="h-5 w-5 text-primary" />
+            ) : (
+              <ChevronLeftSquare className="h-5 w-5 text-primary" />
+            )}
           </div>
           <motion.span
-            initial={{ opacity: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isCollapsed ? 0 : 1 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden whitespace-nowrap"
+          >
+            {isCollapsed ? "Expand" : "Collapse"}
+          </motion.span>
+        </Button>
+        <Button variant="outline" className="w-full justify-start">
+          <div className={`flex items-center justify-center w-8 h-8 transition-all ${isCollapsed ? "mx-auto" : "mr-2"}`}>
+            <Home className="h-4 w-4 text-primary" />
+          </div>
+          <motion.span
+            initial={{ opacity: 0 }}
             animate={{ opacity: isCollapsed ? 0 : 1 }}
             transition={{ duration: 0.2 }}
             className="overflow-hidden whitespace-nowrap"
@@ -196,5 +218,3 @@ const Sidebar = () => {
     </motion.aside>
   )
 }
-
-export default Sidebar

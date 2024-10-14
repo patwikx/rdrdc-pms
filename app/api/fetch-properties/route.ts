@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db'; // assuming prisma is set up correctly
+import { prisma } from '@/lib/db';
 
-export const revalidate = 0
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -19,8 +19,8 @@ export async function GET() {
         province: true,
         propertyType: true,
         createdAt: true,
-        updatedAt: true, // Ensure this field exists in your schema
-        space: { // Include the space relation
+        updatedAt: true,
+        space: {
           select: {
             id: true,
             spaceNumber: true,
@@ -29,7 +29,7 @@ export async function GET() {
             spaceStatus: true,
             spaceRemarks: true,
             totalSpaceRent: true,
-            rpt: { // Include the rpt relation for each space
+            rpt: {
               select: {
                 id: true,
                 TaxDecNo: true,
@@ -38,6 +38,17 @@ export async function GET() {
                 Status: true,
                 custodianRemarks: true,
                 createdAt: true
+              }
+            },
+            tenant: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                contactNo: true,
+                companyName: true,
+                address: true,
+                email: true
               }
             }
           }
@@ -62,13 +73,11 @@ export async function GET() {
         }
       },
       orderBy: {
-        updatedAt: 'desc', // Order by the updatedAt field in descending order
+        updatedAt: 'desc',
       },
     });
 
     const response = NextResponse.json(properties, { status: 200 });
-
-    // Set cache control headers to disable caching
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     response.headers.set('Pragma', 'no-cache');
     response.headers.set('Expires', '0');

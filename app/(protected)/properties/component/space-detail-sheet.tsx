@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Building, LandPlot, AlertTriangle, Users, FileText, DollarSign, XCircle, CheckCircle2, Edit } from 'lucide-react'
+import { Building, LandPlot, AlertTriangle, Users, FileText, Mail, Phone, Building2, MapPin, Edit } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Space } from '@/types/type'
+import { Space, Tenant } from '@/types/type'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 
 export const revalidate = 0
@@ -16,8 +16,6 @@ export const revalidate = 0
 interface SpaceDetailsSheetProps {
   space: Space
 }
-
-// ... (imports remain unchanged)
 
 export const SpaceDetailsSheet: React.FC<SpaceDetailsSheetProps> = ({ space }) => {
   const [isOpen, setIsOpen] = React.useState(false)
@@ -62,8 +60,9 @@ export const SpaceDetailsSheet: React.FC<SpaceDetailsSheetProps> = ({ space }) =
                       <div className="flex flex-col">
                         <span className="text-sm text-muted-foreground mb-1">Area</span>
                         <div className="flex">
-                          <LandPlot className="mr-2 h-5 w-5 text-primary" />
+                          
                           <span className="text-lg font-medium">{space.spaceArea} sq ft</span>
+                          <LandPlot className="mt-1 ml-2 h-5 w-5 text-primary" />
                         </div>
                       </div>
                       <div className="flex flex-col mr-36">
@@ -80,13 +79,13 @@ export const SpaceDetailsSheet: React.FC<SpaceDetailsSheetProps> = ({ space }) =
                       <div className="flex flex-col">
                         <span className="text-sm text-muted-foreground">Rate</span>
                         <div className="flex items-center">
-                          <span className="text-lg font-medium">₱{space.spaceRate.toLocaleString()}.00</span>
+                          <span className="text-lg font-medium">₱{space.spaceRate?.toLocaleString()}.00</span>
                         </div>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-sm text-muted-foreground">Monthly Rent</span>
                         <div className="flex items-center">
-                          <span className="text-lg font-medium">₱{space.totalSpaceRent.toLocaleString()}.00</span>
+                          <span className="text-lg font-medium">₱{space.totalSpaceRent?.toLocaleString()}.00</span>
                         </div>
                       </div>
                     </div>
@@ -101,8 +100,6 @@ export const SpaceDetailsSheet: React.FC<SpaceDetailsSheetProps> = ({ space }) =
                 </CardContent>
               </Card>
             </motion.div>
-
-            <Separator className="my-6" />
 
             {/* RPT Details Card */}
             <motion.div variants={cardVariants}>
@@ -150,37 +147,71 @@ export const SpaceDetailsSheet: React.FC<SpaceDetailsSheetProps> = ({ space }) =
               </Card>
             </motion.div>
 
-            {/* Amenities Card */}
-            <motion.div variants={cardVariants}>
-              <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
-                <CardHeader>
-                  <CardTitle className="text-2xl font-semibold">Amenities</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    {[
-                      { name: "Air Conditioning", available: true },
-                      { name: "High-Speed Internet", available: true },
-                      { name: "24/7 Security", available: true },
-                      { name: "Parking Space", available: false },
-                      { name: "Meeting Rooms", available: true },
-                      { name: "CCTV Cameras Available", available: false },
-                    ].map((amenity, index) => (
-                      <div key={index} className="flex items-center">
-                        {amenity.available ? (
-                          <CheckCircle2 className="mr-2 h-5 w-5 text-success" />
-                        ) : (
-                          <XCircle className="mr-2 h-5 w-5 text-muted-foreground" />
-                        )}
-                        <span className={amenity.available ? "text-foreground" : "text-muted-foreground"}>
-                          {amenity.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+{/* Tenant Information Card */}
+<motion.div variants={cardVariants}>
+  <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
+    <CardHeader>
+      <CardTitle className="text-xl font-semibold">Tenant Information</CardTitle>
+    </CardHeader>
+    <CardContent>
+      {space.tenant ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+          <div className="space-y-0.5">
+            <p className="text-xs font-medium text-muted-foreground">Full Name</p>
+            <div className="flex items-center">
+              <Users className="mr-1 h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">
+                {space.tenant.firstName} {space.tenant.lastName}
+              </span>
+            </div>
+          </div>
+          
+          {space.tenant.companyName && (
+            <div className="space-y-0.5">
+              <p className="text-xs font-medium text-muted-foreground">Company Name</p>
+              <div className="flex items-center">
+                <Building2 className="mr-1 h-4 w-4 text-primary" />
+                <span className="text-sm">{space.tenant.companyName}</span>
+              </div>
+            </div>
+          )}
+          
+          <div className="space-y-0.5">
+            <p className="text-xs font-medium text-muted-foreground">Email Address</p>
+            <div className="flex items-center">
+              <Mail className="mr-1 h-4 w-4 text-primary" />
+              <span className="text-sm">{space.tenant.email}</span>
+            </div>
+          </div>
+          
+          {space.tenant.contactNo && (
+            <div className="space-y-0.5">
+              <p className="text-xs font-medium text-muted-foreground">Contact Number</p>
+              <div className="flex items-center">
+                <Phone className="mr-1 h-4 w-4 text-primary" />
+                <span className="text-sm">{space.tenant.contactNo}</span>
+              </div>
+            </div>
+          )}
+          
+          {space.tenant.address && (
+            <div className="space-y-0.5 md:col-span-2">
+              <p className="text-xs font-medium text-muted-foreground">Address</p>
+              <div className="flex items-start">
+                <MapPin className="mr-1 h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                <span className="text-sm">{space.tenant.address}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <p className="text-center text-muted-foreground py-4">
+          No tenant information available for this space.
+        </p>
+      )}
+    </CardContent>
+  </Card>
+</motion.div>
           </motion.div>
         </ScrollArea>
       </SheetContent>

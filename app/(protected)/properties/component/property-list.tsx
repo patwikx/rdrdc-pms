@@ -6,8 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import { Building, Search, MapPin, LandPlot, PlusCircle, X } from 'lucide-react'
+import { Building, Search, MapPin, LandPlot, PlusCircle, X, Download } from 'lucide-react'
 import { CreatePropertyForm } from './create-property-form'
 import axios from 'axios'
 import { Badge } from '@/components/ui/badge'
@@ -21,6 +20,7 @@ import { EditablePropertyTable } from './editable-property-table'
 import { EditableRPTTable } from './editable-property-rpt'
 import { PropertyListItem } from './property-list-items'
 import AddSpaceModal from './add-space-modal'
+import { handleExportProperties } from './actions/export-excel'
 
 export const revalidate = 0
 
@@ -32,7 +32,8 @@ export const PropertyListx: React.FC<PropertyListProps> = () => {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [selectedType, setSelectedType] = useState<string | null>(null)
-
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  
   const fetchProperties = useCallback(async () => {
     try {
       const response = await axios.get<Property[]>('/api/fetch-properties')
@@ -139,13 +140,20 @@ export const PropertyListx: React.FC<PropertyListProps> = () => {
     setSelectedType(null)
   }
 
+
   return (
     <div className='flex h-screen bg-background'>
-      <main className='flex-1 overflow-hidden flex flex-col'>
-        <div className='flex justify-between items-center p-4'>
+      <main className='flex-1 flex flex-col ml-4 mr-4'>
+          <div className='flex justify-between'>
+          <div>
           <Header propertiesCount={properties.length} />
+          </div>
+          <div className='flex justify-end items-center mr-4'>
+          <Button className='mr-4' onClick={handleExportProperties}><Download className='h-5 w-5 mr-2' />Export Properties</Button>
           <CreatePropertyForm onPropertyCreated={handlePropertyCreated} />
-        </div>
+          </div>
+          </div>
+
         <div className='flex-1 flex overflow-hidden'>
           <PropertySidebar 
             properties={filteredProperties}
@@ -185,7 +193,7 @@ const Header: React.FC<HeaderProps> = ({ propertiesCount }) => (
     className='p-4'
   >
     <div className="flex items-center justify-between">
-      <h1 className='text-3xl font-bold'>Properties ({propertiesCount})</h1>
+      <h1 className='text-2xl font-bold'>Properties ({propertiesCount})</h1>
     </div>
   </motion.div>
 )
@@ -215,17 +223,16 @@ const PropertySidebar: React.FC<PropertySidebarProps> = ({
   selectedPropertyId,
   setSelectedProperty
 }) => (
-  <div className='w-1/3 border-r flex flex-col'>
-    <div className='p-4 space-y-4'>
-      <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      <FilterBar 
-        selectedType={selectedType}
-        setSelectedType={setSelectedType}
-        propertyTypes={propertyTypes}
-        clearFilters={clearFilters}
-      />
-      <Separator />
-    </div>
+  <div className='w-1/4 flex flex-col p-4 border border-gray-200 rounded-lg mt-1 shadow-md bg-white mb-2 h-[855px]'>
+<div className='space-y-4 mb-4 border border-gray-200 rounded-lg shadow-md p-4 bg-white'>
+  <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+  <FilterBar 
+    selectedType={selectedType}
+    setSelectedType={setSelectedType}
+    propertyTypes={propertyTypes}
+    clearFilters={clearFilters}
+  />
+</div>
     <PropertyList 
       properties={properties}
       loading={loading}
@@ -233,7 +240,7 @@ const PropertySidebar: React.FC<PropertySidebarProps> = ({
       setSelectedProperty={setSelectedProperty}
     />
   </div>
-)
+);
 
 interface SearchBarProps {
   searchTerm: string;
@@ -305,7 +312,7 @@ const PropertyList: React.FC<PropertyListProps> = ({ properties, loading, select
   }
 
   return (
-    <ScrollArea className="flex-grow">
+    <ScrollArea className="flex">
       {loading ? (
         <Suspense fallback={<LoadingSkeleton />}>
           <LoadingSkeleton />
@@ -359,7 +366,7 @@ interface PropertyDetailsProps {
 }
 
 const PropertyDetails: React.FC<PropertyDetailsProps> = ({ selectedProperty, handlePropertyUpdate, handleRPTUpdate, handleSpaceAdded }) => (
-  <div className='flex-1 overflow-auto'>
+  <div className='flex-1 mt-[-10px]'>
     <ScrollArea className="h-full">
       <AnimatePresence mode="wait">
         {selectedProperty ? (
@@ -422,7 +429,6 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, handlePropertyUpd
           rptDetails={property.rpt} 
           onUpdate={handleRPTUpdate}
         />
-        <Separator className="mt-8" />
         <PropertyImages property={property} />
         <SpaceList 
           spaces={property.space} 
@@ -493,7 +499,7 @@ interface SpaceListProps {
 
 const SpaceList: React.FC<SpaceListProps> = ({ spaces, propertyId, onSpaceAdded, onPropertyUpdate, property }) => (
   <div>
-    <div className="flex justify-between items-center mb-4">
+    <div className="flex justify-between items-center mt-[-10px] mb-2">
       <h3 className="text-lg font-semibold">List of Spaces ({spaces.length})</h3>
       <AddSpaceModal 
         propertyId={propertyId} 
@@ -502,7 +508,7 @@ const SpaceList: React.FC<SpaceListProps> = ({ spaces, propertyId, onSpaceAdded,
         property={property}
       />
     </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {spaces.map((unit) => (
         <SpaceCard key={unit.id} space={unit} />
       ))}
@@ -515,29 +521,33 @@ interface SpaceCardProps {
 }
 
 const SpaceCard: React.FC<SpaceCardProps> = ({ space }) => (
-<Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
-  <CardHeader>
-    <CardTitle className="text-lg">{space.spaceNumber}</CardTitle>
+  <Card className="shadow-sm hover:shadow-md transition-shadow duration-300 border border-border max-w-[250px]">
+  <CardHeader className="py-3 px-4">
+    <CardTitle className="text-sm font-semibold">{space.spaceNumber}</CardTitle>
   </CardHeader>
-  <CardContent>
-    <div className="flex justify-between items-center mb-4">
+  <CardContent className="p-4">
+    <div className="flex justify-between items-start mb-3">
       <div className="flex flex-col">
-        <span className="text-sm text-muted-foreground">Area</span>
-        <p className="flex items-center">
-          <LandPlot className="mr-2 h-4 w-4" /> {space.spaceArea} sq ft
+        <span className="text-xs text-muted-foreground">Area</span>
+        <p className="flex items-center text-sm font-medium">
+          {space.spaceArea} sq ft
+          <LandPlot className="ml-1 h-3 w-3 text-muted-foreground" />
         </p>
       </div>
-      <div className="flex flex-col">
-        <span className="text-sm text-muted-foreground">Status</span>
-        <Badge variant={space.spaceStatus === 'Occupied' ? 'destructive' : 'success'}>
+      <div className="flex flex-col items-end">
+        <span className="text-xs text-muted-foreground">Status</span>
+        <Badge 
+          variant={space.spaceStatus === 'Occupied' ? 'destructive' : 'success'}
+          className="text-[10px] px-1.5 py-0.5"
+        >
           {space.spaceStatus}
         </Badge>
       </div>
     </div>
-    <div className="flex flex-col mb-4">
-      <span className="text-sm text-muted-foreground">Monthly Rent</span>
-      <p>
-        ₱ {space.totalSpaceRent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    <div className="mb-3">
+      <span className="text-xs text-muted-foreground block">Monthly Rent</span>
+      <p className="text-sm font-semibold">
+        ₱{space.totalSpaceRent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </p>
     </div>
     <SpaceDetailsSheet space={space} />

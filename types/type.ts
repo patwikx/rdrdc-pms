@@ -1,3 +1,4 @@
+
 import { LucideIcon } from 'lucide-react';
 import { ReactNode } from 'react';
 
@@ -54,7 +55,18 @@ export type Space = {
   totalSpaceRent: number;
   createdAt: string;
   rpt: RPT[];
+  tenant: Tenant;
 };
+
+export type Tenant = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  companyName: string;
+  address: string;
+  contactNo: string;
+}
 
 export type RPT = {
   id?: string | null;

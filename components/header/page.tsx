@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { signOut } from 'next-auth/react'; // Import from next-auth/react
 import { ModeToggle } from '../theme-toggle';
+import { Label } from '../ui/label';
 
 const Header = () => {
   const router = useRouter();
@@ -49,7 +50,12 @@ const Header = () => {
 
   return (
     <div>
-      <header className="flex items-center justify-between border-b p-4">
+      <header className="flex items-center justify-between border-b p-2">
+        {/* Label on the left side */}
+        <div className="flex items-center space-x-2">
+          <Label className="text-2xl font-bold whitespace-nowrap">RD REALTY DEVELOPMENT CORPORATION</Label>
+        </div>
+
         <div className="flex items-center space-x-4 justify-end w-full mr-2">
           <div className='mt-[-7px]'>
             <ModeToggle />

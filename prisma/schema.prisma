@@ -38,6 +38,7 @@ model Tenant {
   firstName             String
   lastName              String
   contactNo             String?
+  companyName           String?
   address               String?
   email                 String                 @unique
   emailVerified         DateTime?
@@ -117,8 +118,10 @@ model Lease {
   tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  rent       String
+  rent       Float
   status     String
+  leaseStart String?
+  leaseEnd   String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }

@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { PlusCircle, X, Pencil, Save, Loader } from 'lucide-react'
+import { PlusCircle, X, Pencil, Save, Loader, CalendarIcon, Edit3, Edit } from 'lucide-react'
 import axios from 'axios'
 import { Badge } from '@/components/ui/badge'
 import { RPT } from '@/types/type'
@@ -114,160 +114,167 @@ export const EditableRPTTable: React.FC<EditableRPTTableProps> = ({ propertyId, 
     };
 
     return (
-        <Card className="mt-4 shadow-md hover:shadow-lg transition-shadow duration-300">
-            <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="mt-4 shadow-sm border border-border">
+            <CardHeader className="flex flex-row items-center justify-between py-4 px-6">
                 <CardTitle className="text-lg font-semibold">RPT Details</CardTitle>
-                {isEditing || isAdding ? (
-                    <div>
-                        <Button onClick={handleSave} className="mr-2" disabled={isLoading}>
-                            {isLoading ? <Loader className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                            Save
-                        </Button>
-                        <Button onClick={() => {
-                            setIsEditing(false);
-                            setIsAdding(false);
-                            setEditedRPT(rptDetails);
-                            setSelectedRPTs([]);
-                        }} variant="outline" disabled={isLoading}>
-                            <X className="w-4 h-4 mr-2" />
-                            Cancel
-                        </Button>
-                    </div>
-                ) : (
-                    <div>
-                        <Button onClick={() => setIsEditing(true)} className="mr-2" disabled={isLoading || editedRPT.length === 0 || selectedRPTs.length === 0}>
-                            <Pencil className="w-4 h-4 mr-2" />
-                            Edit
-                        </Button>
-                        <Button onClick={handleAddRPT} variant="outline" disabled={isLoading}>
-                            <PlusCircle className="w-4 h-4 mr-2" />
-                            Add RPT
-                        </Button>
-                    </div>
-                )}
+                <div className="flex space-x-2">
+                    {isEditing || isAdding ? (
+                        <>
+                            <Button onClick={handleSave} disabled={isLoading} size="sm" className="h-8 px-3 text-xs">
+                                {isLoading ? <Loader className="w-3 h-3 mr-2 animate-spin" /> : <Save className="w-3 h-3 mr-2" />}
+                                Save
+                            </Button>
+                            <Button onClick={() => {
+                                setIsEditing(false);
+                                setIsAdding(false);
+                                setEditedRPT(rptDetails);
+                                setSelectedRPTs([]);
+                            }} variant="outline" disabled={isLoading} size="sm" className="h-8 px-3 text-xs">
+                                <X className="w-3 h-3 mr-2" />
+                                Cancel
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button onClick={() => setIsEditing(true)} disabled={isLoading || editedRPT.length === 0 || selectedRPTs.length === 0} size="sm" className="h-8 px-3 text-xs">
+                                <Edit className="w-3 h-3 mr-2" />
+                                Edit
+                            </Button>
+                            <Button onClick={handleAddRPT} variant="outline" disabled={isLoading} size="sm" className="h-8 px-3 text-xs">
+                                <PlusCircle className="w-3 h-3 mr-2" />
+                                Add RPT
+                            </Button>
+                        </>
+                    )}
+                </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
                 {editedRPT.length > 0 || isAdding ? (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                {!isAdding && <TableHead className='text-center items-center font-bold'>Select</TableHead>}
-                                <TableHead className='text-center items-center font-bold'>Tax Dec No</TableHead>
-                                <TableHead className='text-center items-center font-bold'>Payment Mode</TableHead>
-                                <TableHead className='text-center items-center font-bold'>Due Date</TableHead>
-                                <TableHead className='text-center items-center font-bold'>Custodian Remarks</TableHead>
-                                <TableHead className='text-center items-center font-bold'>Status</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {editedRPT.map((rpt, index) => (
-                                (!isEditing || selectedRPTs.includes(rpt.id?.toString() || '') || (isAdding && index === editedRPT.length - 1)) && (
-                                    <TableRow key={rpt.id || `new-${index}`}>
-                                        {!isAdding && (
-                                            <TableCell className='text-center'>
-                                                <Checkbox
-                                                    checked={selectedRPTs.includes(rpt.id?.toString() || '')}
-                                                    onCheckedChange={() => rpt.id && handleCheckboxChange(rpt.id.toString())}
-                                                    disabled={isEditing}
-                                                />
+                    <div className="overflow-x-auto">
+                        <Table className="w-full">
+                            <TableHeader>
+                                <TableRow className="bg-muted/50">
+                                    {!isAdding && <TableHead className="w-[50px] py-2 px-4 text-xs font-medium">Select</TableHead>}
+                                    <TableHead className="py-2 px-4 text-xs font-medium">Tax Dec No</TableHead>
+                                    <TableHead className="py-2 px-4 text-xs font-medium">Payment Mode</TableHead>
+                                    <TableHead className="py-2 px-4 text-xs font-medium">Due Date</TableHead>
+                                    <TableHead className="py-2 px-4 text-xs font-medium">Custodian Remarks</TableHead>
+                                    <TableHead className="py-2 px-4 text-xs font-medium">Status</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {editedRPT.map((rpt, index) => (
+                                    (!isEditing || selectedRPTs.includes(rpt.id?.toString() || '') || (isAdding && index === editedRPT.length - 1)) && (
+                                        <TableRow key={rpt.id || `new-${index}`} className="border-b border-border/50 hover:bg-muted/50">
+                                            {!isAdding && (
+                                                <TableCell className="py-2 px-4">
+                                                    <Checkbox
+                                                        checked={selectedRPTs.includes(rpt.id?.toString() || '')}
+                                                        onCheckedChange={() => rpt.id && handleCheckboxChange(rpt.id.toString())}
+                                                        disabled={isEditing}
+                                                    />
+                                                </TableCell>
+                                            )}
+                                            <TableCell className="py-2 px-4">
+                                                {(isEditing && (selectedRPTs.includes(rpt.id?.toString() || '') || (isAdding && index === editedRPT.length - 1))) ? (
+                                                    <Input
+                                                        name="TaxDecNo"
+                                                        value={rpt.TaxDecNo}
+                                                        onChange={(e) => handleInputChange(e, index)}
+                                                        className="w-full h-8 text-sm"
+                                                    />
+                                                ) : (
+                                                    <span className="text-sm">{rpt.TaxDecNo}</span>
+                                                )}
                                             </TableCell>
-                                        )}
-                                        <TableCell className='text-center'>
-                                            {(isEditing && (selectedRPTs.includes(rpt.id?.toString() || '') || (isAdding && index === editedRPT.length - 1))) ? (
-                                                <Input
-                                                    name="TaxDecNo"
-                                                    value={rpt.TaxDecNo}
-                                                    onChange={(e) => handleInputChange(e, index)}
-                                                />
-                                            ) : (
-                                                rpt.TaxDecNo
-                                            )}
-                                        </TableCell>
-                                        <TableCell className='text-center'>
-                                            {(isEditing && (selectedRPTs.includes(rpt.id?.toString() || '') || (isAdding && index === editedRPT.length - 1))) ? (
-                                                <Select onValueChange={(value) => handleSelectChange(value, index, 'PaymentMode')} value={rpt.PaymentMode.toString()}>
-                                                    <SelectTrigger className="w-full">
-                                                        <SelectValue placeholder={rpt.PaymentMode} />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectGroup>
-                                                            <SelectItem value="Quarterly">Quarterly</SelectItem>
-                                                            <SelectItem value="Annual">Annual</SelectItem>
-                                                            <SelectItem value="Monthly">Monthly</SelectItem>
-                                                        </SelectGroup>
-                                                    </SelectContent>
-                                                </Select>
-                                            ) : (
-                                                rpt.PaymentMode
-                                            )}
-                                        </TableCell>
-                                        <TableCell className='text-center'>
-                                            {(isEditing && (selectedRPTs.includes(rpt.id?.toString() || '') || (isAdding && index === editedRPT.length - 1))) ? (
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button variant={"outline"} className="w-full">
-                                                            {rpt.DueDate ? format(new Date(rpt.DueDate), "PPP") : "Pick a date"}
-                                                            <span className="ml-2">📅</span>
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent>
-                                                        <Calendar 
-                                                            selected={rpt.DueDate ? new Date(rpt.DueDate) : undefined}
-                                                            onSelect={(date) => handleDateChange(date, index)}
-                                                            mode='single'
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            ) : (
-                                                rpt.DueDate
-                                            )}
-                                        </TableCell>
-                                        <TableCell className='text-center'>
-                                            {(isEditing && (selectedRPTs.includes(rpt.id?.toString() || '') || (isAdding && index === editedRPT.length - 1))) ? (
-                                                <Input
-                                                    name="custodianRemarks"
-                                                    value={rpt.custodianRemarks}
-                                                    onChange={(e) => handleInputChange(e, index)}
-                                                />
-                                            ) : (
-                                                rpt.custodianRemarks
-                                            )}
-                                        </TableCell>
-                                        <TableCell className='text-center'>
-                                            {(isEditing && (selectedRPTs.includes(rpt.id?.toString() || '') || (isAdding && index === editedRPT.length - 1))) ? (
-                                                <Select onValueChange={(value) => handleSelectChange(value, index, 'Status')} value={rpt.Status.toString()}>
-                                                    <SelectTrigger className="w-full">
-                                                        <SelectValue placeholder={rpt.Status} />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectGroup>
-                                                            <SelectItem value="Unpaid">Unpaid</SelectItem>
-                                                            <SelectItem value="Paid">Paid</SelectItem>
-                                                        </SelectGroup>
-                                                    </SelectContent>
-                                                </Select>
-                                            ) : (
-                                                <Badge 
-                                                className="text-md px-3 py-1"
-                                                variant={
-                                                  rpt.Status === 'Unpaid' 
-                                                    ? 'destructive' 
-                                                    : rpt.Status === 'Paid' 
-                                                    ? 'success' // Assuming you want a different variant for Pending
-                                                    : 'success' // For Paid or other statuses
-                                                }
-                                              >
-                                                {rpt.Status}
-                                              </Badge>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                )
-                            ))}
-                        </TableBody>
-                    </Table>
+                                            <TableCell className="py-2 px-4">
+                                                {(isEditing && (selectedRPTs.includes(rpt.id?.toString() || '') || (isAdding && index === editedRPT.length - 1))) ? (
+                                                    <Select onValueChange={(value) => handleSelectChange(value, index, 'PaymentMode')} value={rpt.PaymentMode.toString()}>
+                                                        <SelectTrigger className="w-full h-8 text-sm">
+                                                            <SelectValue placeholder={rpt.PaymentMode} />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectGroup>
+                                                                <SelectItem value="Quarterly">Quarterly</SelectItem>
+                                                                <SelectItem value="Annual">Annual</SelectItem>
+                                                                <SelectItem value="Monthly">Monthly</SelectItem>
+                                                            </SelectGroup>
+                                                        </SelectContent>
+                                                    </Select>
+                                                ) : (
+                                                    <span className="text-sm">{rpt.PaymentMode}</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="py-2 px-4">
+                                                {(isEditing && (selectedRPTs.includes(rpt.id?.toString() || '') || (isAdding && index === editedRPT.length - 1))) ? (
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button variant="outline" className="w-full h-8 justify-start text-left text-sm font-normal">
+                                                                {rpt.DueDate ? format(new Date(rpt.DueDate), "PPP") : <span>Pick a date</span>}
+                                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="w-auto p-0" align="start">
+                                                            <Calendar
+                                                                mode="single"
+                                                                selected={rpt.DueDate ? new Date(rpt.DueDate) : undefined}
+                                                                onSelect={(date) => handleDateChange(date, index)}
+                                                                initialFocus
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                ) : (
+                                                    <span className="text-sm">{rpt.DueDate}</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="py-2 px-4">
+                                                {(isEditing && (selectedRPTs.includes(rpt.id?.toString() || '') || (isAdding && index === editedRPT.length - 1))) ? (
+                                                    <Input
+                                                        name="custodianRemarks"
+                                                        value={rpt.custodianRemarks}
+                                                        onChange={(e) => handleInputChange(e, index)}
+                                                        className="w-full h-8 text-sm"
+                                                    />
+                                                ) : (
+                                                    <span className="text-sm">{rpt.custodianRemarks}</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="py-2 px-4">
+                                                {(isEditing && (selectedRPTs.includes(rpt.id?.toString() || '') || (isAdding && index === editedRPT.length - 1))) ? (
+                                                    <Select onValueChange={(value) => handleSelectChange(value, index, 'Status')} value={rpt.Status.toString()}>
+                                                        <SelectTrigger className="w-full h-8 text-sm">
+                                                            <SelectValue placeholder={rpt.Status} />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectGroup>
+                                                                <SelectItem value="Unpaid">Unpaid</SelectItem>
+                                                                <SelectItem value="Paid">Paid</SelectItem>
+                                                            </SelectGroup>
+                                                        </SelectContent>
+                                                    </Select>
+                                                ) : (
+                                                    <Badge 
+                                                    className="text-xs px-2 py-0.5"
+                                                    variant={
+                                                      rpt.Status === 'Unpaid' 
+                                                        ? 'destructive' 
+                                                        : rpt.Status === 'Paid' 
+                                                        ? 'success'
+                                                        : 'success'
+                                                    }
+                                                  >
+                                                    {rpt.Status}
+                                                  </Badge>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
                 ) : (
-                    <div className="text-center text-gray-500">No RPT details available.</div>
+                    <div className="text-center text-muted-foreground py-8">No RPT details available.</div>
                 )}
             </CardContent>
         </Card>
