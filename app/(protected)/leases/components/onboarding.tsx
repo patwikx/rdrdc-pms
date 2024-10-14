@@ -203,10 +203,6 @@ export default function TenantOnboarding({ onLeaseCreated }: { onLeaseCreated: (
 
   const CurrentComponent = steps[currentStep].component
 
-  if (isLoading) {
-    return <div>Loading...</div>
-  }
-
   return (
     <div className="flex">
       <div className="flex-1 p-8">

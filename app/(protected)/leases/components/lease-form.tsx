@@ -18,16 +18,19 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  Clock
+  Clock,
+  Plus,
+  Download
 } from 'lucide-react'
 import { useToast } from "@/components/ui/use-toast"
 import { Skeleton } from '@/components/ui/skeleton'
 import TenantOnboarding from './onboarding'
+import { FaFileExcel } from 'react-icons/fa'
 
-// Define types for the lease data
 interface Tenant {
   firstName: string
   lastName: string
+  companyName: string
 }
 
 interface Space {
@@ -56,6 +59,10 @@ export default function LeaseManagement() {
   const [statusFilter, setStatusFilter] = useState('all')
   const { toast } = useToast()
 
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [itemsPerPage] = useState(10)
+
   const fetchLeases = useCallback(async () => {
     setLoading(true)
     try {
@@ -77,39 +84,39 @@ export default function LeaseManagement() {
     fetchLeases()
   }, [fetchLeases])
 
-  const filteredLeases = leases.filter(lease => 
-    (lease.tenant.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     lease.tenant.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     lease.property.propertyName.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (statusFilter === 'all' || lease.status === statusFilter)
-  )
-
   const getLeaseStatus = (leaseEnd: string) => {
     const today = new Date();
     const endDate = new Date(leaseEnd);
     
-    // Set the time to midnight for both dates
     today.setHours(0, 0, 0, 0);
     endDate.setHours(0, 0, 0, 0);
   
     const daysUntilExpiration = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   
     if (daysUntilExpiration < 0) {
-      return 'Expired'; // Lease has expired
+      return 'Expired';
     } else if (daysUntilExpiration <= 30) {
-      return 'For Renewal'; // Lease is about to expire (less than or equal to 30 days)
+      return 'For Renewal';
     } else {
-      return 'Active'; // Lease is active (more than 30 days)
+      return 'Active';
     }
   };
-  
+
+  const filteredLeases = leases.filter(lease => 
+    (lease.tenant.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     lease.tenant.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     lease.tenant.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     lease.property.propertyName.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (statusFilter === 'all' || getLeaseStatus(lease.leaseEnd) === statusFilter)
+  )
+
   const getStatusBadge = (leaseEnd: string) => {
     const status = getLeaseStatus(leaseEnd);
     switch (status) {
       case 'Active':
         return <Badge className="bg-green-500">Active</Badge>;
       case 'For Renewal':
-        return <Badge className="bg-yellow-400">For Renewal</Badge>; // Yellow-orange color for renewal
+        return <Badge className="bg-yellow-400">For Renewal</Badge>;
       case 'Expired':
         return <Badge className="bg-red-500">Expired</Badge>;
       default:
@@ -139,6 +146,7 @@ export default function LeaseManagement() {
     <TableRow>
       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
@@ -147,14 +155,18 @@ export default function LeaseManagement() {
       <TableCell>
         <div className="flex space-x-2">
           <Skeleton className="h-8 w-8 rounded-md" />
-          <Skeleton className="h-8 w-8 rounded-md" />
-          <Skeleton className="h-8 w-8 rounded-md" />
         </div>
       </TableCell>
     </TableRow>
   )
 
-  const expiringLeases = leases.filter(lease => getLeaseStatus(lease.leaseEnd) === 'For Renewal').length
+  const exportToCSV = () => {
+    // Implement CSV export functionality
+    toast({
+      title: "Export Started",
+      description: "Your lease data is being exported to CSV.",
+    })
+  }
 
   return (
     <motion.div 
@@ -163,20 +175,24 @@ export default function LeaseManagement() {
       animate="visible"
       variants={containerVariants}
     >
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-hidden mt-[-30px]">
         <ScrollArea className="flex-1 p-6">
           <motion.div 
-            className="flex justify-between items-center mb-6"
+            className="flex justify-between items-center"
             variants={itemVariants}
           >
-            <h1 className="text-3xl font-bold mt-[-30px]">Leases</h1>
-            <div className="flex items-center space-x-2 mt-[-30px]">
+            <h1 className="text-3xl font-bold">Lease Management</h1>
+            <div className="flex items-center space-x-2">
+              <Button variant='outline' onClick={exportToCSV}>
+                <FaFileExcel className="mr-2 h-4 w-4" />
+                Export to CSV
+              </Button>
               <TenantOnboarding onLeaseCreated={fetchLeases} />
             </div>
           </motion.div>
 
           <motion.div variants={itemVariants}>
-            <Card className="mb-6 mt-[-20px]">
+            <Card className="mb-6">
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex items-center space-x-2">
@@ -198,29 +214,28 @@ export default function LeaseManagement() {
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
                       <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Expiring">Expiring</SelectItem>
+                      <SelectItem value="For Renewal">For Renewal</SelectItem>
                       <SelectItem value="Expired">Expired</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <Table>
-                  <TableHeader>
+                  <TableHeader className='text-center items-center'>
                     <TableRow>
-                      <TableHead>Tenant</TableHead>
-                      <TableHead>Property</TableHead>
-                      <TableHead>Unit</TableHead>
-                      <TableHead>Start Date</TableHead>
-                      <TableHead>End Date</TableHead>
-                      <TableHead>Rent</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead className="py-3 px-4 text-xs font-medium bg-blue-50">Tenant</TableHead>
+                      <TableHead className="py-3 px-4 text-xs font-medium bg-blue-50">Company Name</TableHead>
+                      <TableHead className="py-3 px-4 text-xs font-medium bg-blue-50">Property</TableHead>
+                      <TableHead className="py-3 px-4 text-xs font-medium bg-blue-50">Space</TableHead>
+                      <TableHead className="py-3 px-4 text-xs font-medium bg-blue-50">Start Date</TableHead>
+                      <TableHead className="py-3 px-4 text-xs font-medium bg-blue-50">End Date</TableHead>
+                      <TableHead className="py-3 px-4 text-xs font-medium bg-blue-50">Rent</TableHead>
+                      <TableHead className="py-3 px-4 text-xs font-medium bg-blue-50">Status</TableHead>
+                      <TableHead className="py-3 px-4 text-xs font-medium bg-blue-50">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {loading ? (
                       <>
-                        <SkeletonRow />
-                        <SkeletonRow />
                         <SkeletonRow />
                         <SkeletonRow />
                         <SkeletonRow />
@@ -234,33 +249,38 @@ export default function LeaseManagement() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
+                            className="border-b border-border/50 hover:bg-muted/50"
                           >
-                            <TableCell>{`${lease.tenant.firstName} ${lease.tenant.lastName}`}</TableCell>
-                            <TableCell>{lease.property.propertyName}</TableCell>
-                            <TableCell>{lease.property.space[0]?.spaceNumber || 'N/A'}</TableCell>
-                            <TableCell>{lease.leaseStart}</TableCell>
-                            <TableCell>{lease.leaseEnd}</TableCell>
-                            <TableCell>
+                            <TableCell className="py-3 px-4">{`${lease.tenant.firstName} ${lease.tenant.lastName}`}</TableCell>
+                            <TableCell className="py-3 px-4">{lease.tenant.companyName}</TableCell>
+                            <TableCell className="py-3 px-4">{lease.property.propertyName}</TableCell>
+                            <TableCell className="py-3 px-4">{lease.property.space[0]?.spaceNumber || 'N/A'}</TableCell>
+                            <TableCell className="py-3 px-4">{new Date(lease.leaseStart).toLocaleDateString()}</TableCell>
+                            <TableCell className="py-3 px-4">{new Date(lease.leaseEnd).toLocaleDateString()}</TableCell>
+                            <TableCell className="py-3 px-4">
                               ₱{new Intl.NumberFormat('en-PH', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                               }).format(lease.rent)}
                             </TableCell>
-                            <TableCell>{getStatusBadge(lease.leaseEnd)}</TableCell>
-                            <TableCell>
-                              <div className="flex space-x-2">
-                                <Button variant="outline" size="icon">
+                            <TableCell className="py-3 px-4">{getStatusBadge(lease.leaseEnd)}</TableCell>
+                            <TableCell className="py-3 px-4">
+                              <div className="flex items-center space-x-2">
+                                {/*
+                                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
                                   <FileText className="h-4 w-4" />
                                   <span className="sr-only">View details</span>
                                 </Button>
-                                <Button variant="outline" size="icon">
+                                */}
+                                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
                                   <Edit className="h-4 w-4" />
                                   <span className="sr-only">Edit lease</span>
                                 </Button>
-                                <Button variant="outline" size="icon">
+                                {/*
+                                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
                                   <Trash2 className="h-4 w-4" />
                                   <span className="sr-only">Delete lease</span>
-                                </Button>
+                                </Button> */}
                               </div>
                             </TableCell>
                           </motion.tr>
@@ -278,10 +298,10 @@ export default function LeaseManagement() {
             variants={containerVariants}
           >
             {[
-              { title: "Total Active Leases", value: leases.filter(l => getLeaseStatus(l.leaseEnd) === 'Active').length, icon: CheckCircle2 },
-              { title: "For Renewal", value: expiringLeases, icon: Clock },
-              { title: "Expired Leases", value: leases.filter(l => getLeaseStatus(l.leaseEnd) === 'Expired').length, icon: AlertTriangle },
-              { title: "Vacant Units", value: 'N/A', icon: XCircle }
+              { title: "Total Active Leases", value: leases.filter(l => getLeaseStatus(l.leaseEnd) === 'Active').length, icon: CheckCircle2, color: "text-green-500" },
+              { title: "For Renewal", value: leases.filter(l => getLeaseStatus(l.leaseEnd) === 'For Renewal').length, icon: Clock, color: "text-yellow-500" },
+              { title: "Expired Leases", value: leases.filter(l => getLeaseStatus(l.leaseEnd) === 'Expired').length, icon: AlertTriangle, color: "text-red-500" },
+              { title: "Anniversary", value: 'N/A', icon: XCircle, color: "text-gray-500" }
             ].map((item, index) => (
               <motion.div key={index} variants={itemVariants}>
                 <Card>
@@ -292,7 +312,7 @@ export default function LeaseManagement() {
                     {loading ? (
                       <Skeleton className="h-4 w-4 rounded-full" />
                     ) : (
-                      <item.icon className="h-4 w-4 text-muted-foreground" />
+                      <item.icon className={`h-4 w-4 ${item.color}`} />
                     )}
                   </CardHeader>
                   <CardContent>
