@@ -33,7 +33,7 @@ export default function HeroPage() {
             <div className="flex justify-start lg:w-0 lg:flex-1">
               <a href="/" className="flex items-center">
                 <Image src='/rdrdc.png' alt='Logo' width={30} height={30} />
-                <span className="ml-2 text-lg font-bold text-gray-900 hidden sm:inline">RD REALTY DEVELOPMENT CORPORATION</span>
+                <span className="ml-2 text-lg font-bold whitespace-nowrap text-gray-900 hidden sm:inline">RD REALTY DEVELOPMENT CORPORATION</span>
                 <span className="ml-2 text-lg font-bold text-gray-900 sm:hidden">RD REALTY DEVELOPMENT CORPORATION</span>
               </a>
             </div>
