@@ -37,6 +37,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import axios from 'axios'
 
 type Tenant = {
   id: string
@@ -56,7 +57,7 @@ const tenants: Tenant[] = [
   { id: "2", name: "Jimster Santillan", unit: "102", dueDate: "2023-06-01", amountDue: 1200, status: 'Overdue', email: "jimster@example.com", phone: "(555) 234-5678", leaseStart: "2023-02-01", leaseEnd: "2024-01-31" },
   { id: "3", name: "Argie Tacay", unit: "103", dueDate: "2023-06-02", amountDue: 950, status: 'Paid', email: "argie@example.com", phone: "(555) 345-6789", leaseStart: "2023-03-01", leaseEnd: "2024-02-29" },
   { id: "4", name: "Cezar Regalado", unit: "104", dueDate: "2023-06-03", amountDue: 1100, status: 'Pending', email: "cezar@example.com", phone: "(555) 456-7890", leaseStart: "2023-04-01", leaseEnd: "2024-03-31" },
-  { id: "5", name: "Kristian Quizon", unit: "105", dueDate: "2023-06-04", amountDue: 1050, status: 'Overdue', email: "kristian@example.com", phone: "(555) 567-8901", leaseStart: "2023-05-01", leaseEnd: "2024-04-30" },
+  { id: "5", name: "Patrick Lacap Miranda", unit: "105", dueDate: "2024-10-15", amountDue: 1050, status: 'Overdue', email: "plmiranda@rdretailgroup.com.ph", phone: "(555) 567-8901", leaseStart: "2023-05-01", leaseEnd: "2024-04-30" },
 ]
 
 export function BillingManagement() {
@@ -68,9 +69,115 @@ export function BillingManagement() {
     setSelectedTenant(tenant)
   }
 
-  const handleEmailBilling = (tenantId: string) => {
-    console.log(`Emailing billing for tenant ${tenantId}`)
-  }
+  const handleEmailBilling = async (tenantId: string) => {
+    const tenant = tenants.find(t => t.id === tenantId);
+    if (!tenant) return;
+
+    const invoiceNumber = `BILL INV. ${Math.floor(100000 + Math.random() * 900000)}`;
+    const invoiceDate = new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    const dueDate = new Date(tenant.dueDate);
+    const formattedDueDate = dueDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+
+    const vatableAmount = tenant.amountDue / 1.12; // Assuming 12% VAT
+    const vatAmount = tenant.amountDue - vatableAmount;
+
+    try {
+      await axios.post("/api/send-email", {
+        to: tenant.email,
+        subject: `Billing Invoice ${invoiceNumber}`,
+        body: `
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ddd;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td colspan="2" style="font-size: 18px; font-weight: bold;">RD REALTY DEVELOPMENT CORPORATION</td>
+            </tr>
+            <tr>
+              <td colspan="2">General Santos Business Park, National Highway, General Santos City</td>
+            </tr>
+            <tr>
+              <td colspan="2">VAT Registration TIN 000-636-006-000</td>
+            </tr>
+            <tr>
+              <td colspan="2" style="font-size: 16px; font-weight: bold; padding-top: 20px;">BILLING INVOICE</td>
+            </tr>
+            <tr>
+              <td>
+                Customer's Name: ${tenant.name}<br>
+                Business Address: ${tenant.unit}<br>
+                TIN: (Customer's TIN)
+              </td>
+              <td style="text-align: right;">
+                Invoice Date: ${invoiceDate}<br>
+                ${invoiceNumber}
+              </td>
+            </tr>
+          </table>
+
+          <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <tr style="background-color: #f2f2f2;">
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Description</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Quantity</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Unit Price</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">AMOUNT</th>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #ddd; padding: 8px;">MONTHLY RENTAL - ${dueDate.toLocaleString('default', { month: 'long' })} ${dueDate.getFullYear()}</td>
+              <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">1</td>
+              <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">₱${vatableAmount.toFixed(2)}</td>
+              <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">₱${vatableAmount.toFixed(2)}</td>
+            </tr>
+          </table>
+
+          <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <tr>
+              <td style="width: 70%;">
+                Terms: 7 days<br><br>
+                This is a system-generated invoice and if issued without<br>
+                alteration, does not require a signature.<br><br>
+                "This document is valid for claim of input tax"<br>
+                CAS Permit No. 01-2016-123-0001-00000<br>
+                Range of serial nos. from 100000 to 199999<br>
+                Date Issue: Jan. 04, 2016
+              </td>
+              <td style="width: 30%; text-align: right;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td>Vatable Sales</td>
+                    <td style="text-align: right;">₱${vatableAmount.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td>VAT Exempt Sales</td>
+                    <td style="text-align: right;">₱0.00</td>
+                  </tr>
+                  <tr>
+                    <td>Zero Rated Sales</td>
+                    <td style="text-align: right;">₱0.00</td>
+                  </tr>
+                  <tr>
+                    <td>VAT Amount</td>
+                    <td style="text-align: right;">₱${vatAmount.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td style="font-weight: bold;">Total Amount Due</td>
+                    <td style="font-weight: bold; text-align: right;">₱${tenant.amountDue.toFixed(2)}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <div style="margin-top: 20px; text-align: center; font-style: italic;">
+            This is a system generated billing invoice.
+          </div>
+        </div>
+        `
+      });
+
+      console.log(`Billing invoice emailed to tenant ${tenantId}`);
+    } catch (error) {
+      console.error(`Error sending billing invoice to tenant ${tenantId}:`, error);
+    }
+  };
 
   const filteredTenants = tenants.filter(tenant =>
     (tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
