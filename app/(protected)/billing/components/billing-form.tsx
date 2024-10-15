@@ -31,13 +31,15 @@ import {
   DollarSign, 
   Users, 
   Calendar, 
-  AlertTriangle 
+  AlertTriangle, 
+  Loader
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import axios from 'axios'
+import { useToast } from '@/components/ui/use-toast'
 
 type Tenant = {
   id: string
@@ -64,12 +66,15 @@ export function BillingManagement() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null)
   const [filterStatus, setFilterStatus] = useState<'All' | 'Paid' | 'Overdue' | 'Pending'>('All')
+  const [emailingTenantId, setEmailingTenantId] = useState<string | null>(null)
+  const { toast } = useToast()
 
   const handleTransaction = (tenant: Tenant) => {
     setSelectedTenant(tenant)
   }
 
   const handleEmailBilling = async (tenantId: string) => {
+    setEmailingTenantId(tenantId)
     const tenant = tenants.find(t => t.id === tenantId);
     if (!tenant) return;
 
@@ -174,8 +179,21 @@ export function BillingManagement() {
       });
 
       console.log(`Billing invoice emailed to tenant ${tenantId}`);
+      toast({
+        title: "Email Sent",
+        description: `Billing invoice successfully sent to ${tenant.name}.`,
+        duration: 3000,
+      })
     } catch (error) {
       console.error(`Error sending billing invoice to tenant ${tenantId}:`, error);
+      toast({
+        title: "Error",
+        description: "Failed to send billing invoice. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      })
+    } finally {
+      setEmailingTenantId(null)
     }
   };
 
@@ -365,10 +383,19 @@ export function BillingManagement() {
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
-                          <Button size="sm" variant="outline" onClick={() => handleEmailBilling(tenant.id)}>
-                            <Mail className="mr-2 h-4 w-4" />
-                            Email
-                          </Button>
+                          <Button 
+        size="sm" 
+        variant="outline" 
+        onClick={() => handleEmailBilling(tenant.id)}
+        disabled={emailingTenantId === tenant.id}
+      >
+        {emailingTenantId === tenant.id ? (
+          <Loader className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Mail className="mr-2 h-4 w-4" />
+        )}
+        {emailingTenantId === tenant.id ? 'Sending...' : 'Email'}
+      </Button>
                         </div>
                       </TableCell>
                     </motion.tr>
