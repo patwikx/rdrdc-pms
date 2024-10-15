@@ -1,16 +1,15 @@
 'use client'
 
-import { Facebook, Instagram, Mail } from 'lucide-react'
+import { Facebook, Instagram, Mail, Clock } from 'lucide-react'
 import Image from 'next/image'
 
-
 export default function LandingFooterPage() {
-
   return (
     <div className="flex flex-col">
       <main className="flex-grow">
-        </main>
-        <footer className="bg-gray-800">
+        {/* Main content goes here */}
+      </main>
+      <footer className="bg-gray-800">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
           <div className="xl:grid xl:grid-cols-3 xl:gap-8">
             <div className="space-y-8 xl:col-span-1">
@@ -36,6 +35,15 @@ export default function LandingFooterPage() {
                   <span className="sr-only">Email</span>
                   <Mail className="h-6 w-6" />
                 </a>
+              </div>
+              <div className="text-gray-400">
+                <h4 className="text-sm font-semibold text-gray-400 tracking-wider uppercase mb-2 flex items-center">
+                  <Clock className="h-4 w-4 mr-2" />
+                  Operating Hours
+                </h4>
+                <p className="text-sm">Monday - Friday: 7:30 AM - 5:10 PM</p>
+                <p className="text-sm">Saturday: 7:30 AM - 12:10 PM</p>
+                <p className="text-sm">Sunday: Closed</p>
               </div>
             </div>
             <div className="mt-12 grid grid-cols-2 gap-8 xl:mt-0 xl:col-span-2">
@@ -140,7 +148,7 @@ export default function LandingFooterPage() {
               </div>
             </div>
           </div>
-          <div className="mt-12 border-t border-gray-700 pt-8">
+          <div className="mt-4 border-t border-gray-700 pt-8 mb-[-40px]">
             <p className="text-base text-gray-400 xl:text-center">
               &copy; 2024 RD REALTY DEVELOPMENT CORPORATION. All rights reserved.
             </p>

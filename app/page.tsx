@@ -7,6 +7,7 @@ import AboutUsPage from "@/components/landing-page/about-section";
 import ContactUsPage from "@/components/landing-page/contact-us";
 import FeaturedProperties from "@/components/landing-page/featured-properties";
 import HeroPage from "@/components/landing-page/hero";
+import MissionVisionPage from "@/components/landing-page/mission-vision";
 import NotableClientPage from "@/components/landing-page/notable-clients";
 import PropertyTypes from "@/components/landing-page/our-properties";
 import OurServicesPage from "@/components/landing-page/our-services";
@@ -32,6 +33,7 @@ const locations = [
         <GoogleMapsSection locations={locations} />
         <OurServicesPage />
         <AboutUsPage />
+        <MissionVisionPage />
         <ContactUsPage />
       </main>
 
