@@ -1,69 +1,61 @@
-"use client";
+'use client'
 
-import { memo, useEffect, useMemo, useState } from 'react';
-import { GoogleMapsEmbed } from '@next/third-parties/google';
+import { memo, useState, useCallback, useMemo } from 'react'
+import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api'
 
 interface Property {
-  id: string;
-  name: string;
-  address: string;
-  lat: number;
-  lng: number;
-  contactNumber: string;
-  email: string;
+  id: string
+  name: string
+  address: string
+  lat: number
+  lng: number
+  contactNumber: string
+  email: string
 }
 
 interface GoogleMapsSectionProps {
-  properties: Property[];
+  properties: Property[]
 }
 
-const MemoizedGoogleMapsEmbed = memo(function MemoizedGoogleMapsEmbed({ 
-  apiKey, 
-  center, 
-  zoom, 
-  q 
-}: { 
-  apiKey: string; 
-  center: string; 
-  zoom: string; 
-  q: string;
-}) {
-  return (
-    <GoogleMapsEmbed
-      apiKey={apiKey}
-      height="550"
-      width="100%"
-      mode="place"
-      q={q}
-    />
-  );
-});
+const DEFAULT_CENTER = { lat: 6.1164, lng: 125.1716 } // General Santos City coordinates
 
 const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function GoogleMapsSection({ properties }) {
-  const [isClient, setIsClient] = useState(false);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [mapCenter, setMapCenter] = useState(DEFAULT_CENTER)
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
 
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: apiKey
+  })
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (searchQuery) {
-      const property = properties.find(p => 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        p.address.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setSelectedProperty(property || null);
+  const handleSearch = useCallback((e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (searchQuery && isLoaded) {
+      const geocoder = new google.maps.Geocoder()
+      geocoder.geocode({ address: searchQuery }, (results, status) => {
+        if (status === 'OK' && results && results[0]) {
+          const location = results[0].geometry.location
+          setMapCenter({ lat: location.lat(), lng: location.lng() })
+        } else {
+          alert('Geocode was not successful for the following reason: ' + status)
+        }
+      })
     }
-  };
+  }, [searchQuery, isLoaded])
 
-  const handlePropertyClick = (property: Property) => {
-    setSelectedProperty(property);
-  };
+  const handlePropertyClick = useCallback((property: Property) => {
+    setMapCenter({ lat: property.lat, lng: property.lng })
+    setSelectedProperty(property)
+  }, [])
+
+  const mapOptions = useMemo(() => ({
+    disableDefaultUI: true,
+    clickableIcons: false,
+    scrollwheel: true
+  }), [])
 
   return (
     <section className="py-12 bg-white">
@@ -71,7 +63,7 @@ const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function Google
         <div className="lg:text-center mb-12">
           <h2 className="text-base text-primary font-semibold tracking-wide uppercase">Our Properties</h2>
           <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-            Find Our Properties
+            Explore Our Properties
           </p>
         </div>
 
@@ -80,7 +72,7 @@ const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function Google
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for a property"
+            placeholder="Search for a location"
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <button type="submit" className="mt-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
@@ -90,16 +82,25 @@ const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function Google
 
         <div className="grid md:grid-cols-2 gap-8">
           <div className="aspect-w-16 aspect-h-9">
-            {isClient && apiKey && selectedProperty ? (
-              <MemoizedGoogleMapsEmbed 
-                apiKey={apiKey} 
-                center={`${selectedProperty.lat},${selectedProperty.lng}`}
-                zoom="15"
-                q={`${selectedProperty.name}, ${selectedProperty.address}`}
-              />
+            {isLoaded ? (
+              <GoogleMap
+                mapContainerStyle={{ width: '100%', height: '450px' }}
+                center={mapCenter}
+                zoom={12}
+                options={mapOptions}
+              >
+                {properties.map((property) => (
+                  <Marker
+                    key={property.id}
+                    position={{ lat: property.lat, lng: property.lng }}
+                    title={property.name}
+                    onClick={() => handlePropertyClick(property)}
+                  />
+                ))}
+              </GoogleMap>
             ) : (
               <div className="bg-gray-200 flex items-center justify-center h-[450px]">
-                <p className="text-gray-500">Select a property to view on map</p>
+                <p className="text-gray-500">Loading map...</p>
               </div>
             )}
           </div>
@@ -126,7 +127,7 @@ const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function Google
         </div>
       </div>
     </section>
-  );
-});
+  )
+})
 
-export default GoogleMapsSection;
+export default GoogleMapsSection
