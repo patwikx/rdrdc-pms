@@ -1,42 +1,87 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Phone, Mail, Facebook, Instagram, Send, Minus, MessageCircle, User, X } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { MessageCircle, Send, X, Phone, Mail, Facebook, Instagram } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
+
+interface ChatMessage {
+  role: 'user' | 'bot'
+  content: string
+}
+
+interface ContactInfo {
+  icon: typeof Phone | typeof Mail | typeof Facebook | typeof Instagram
+  text: string
+  href: string
+}
+
+const faqData: Record<string, string> = {
+  "Who are you?": "I'm a chatbot for RD Realty Development Corporation. I can answer questions about our properties and services.",
+  "What properties do you offer?": "We offer a wide range of properties including land, residential, and commercial spaces. Our portfolio includes properties in various locations across the region.",
+  "How can I schedule a viewing?": "To schedule a viewing, please contact our marketing team at +639 123 456 789 or email us at marketing@rdrealty.com.ph. We'll be happy to arrange a convenient time for you.",
+  "What are your office hours?": "Our office is open Monday to Saturday from 7:30 AM to 5:10 PM. We're closed on sundays and public holidays.",
+  "Do you offer financing options?": "Yes, we work with several partner banks to offer financing options. Our sales team can provide more details and help you find the best option for your needs.",
+  "Where are you located?": "Our main office is located in General Santos Business Park, General Santos City, Philippines.",
+  "What sets RD Realty apart from other developers?": "RD Realty is known for our commitment to quality, innovative designs, and excellent customer service. We have a strong track record of delivering projects on time and to the highest standards.",
+}
+
+const contactInfo: ContactInfo[] = [
+  { icon: Phone, text: '+63 (083) 552-3548', href: 'tel:+63083552354' },
+  { icon: Mail, text: 'marketing@rdrealty.com.ph', href: 'mailto:marketing@rdrealty.com.ph' },
+  { icon: Facebook, text: 'RD Realty Development Corporation', href: 'https://www.facebook.com/RDRealty' },
+  { icon: Instagram, text: '@rdrealty', href: 'https://www.instagram.com/rdrealty' },
+]
 
 export default function ChatbotWidget() {
   const [isOpen, setIsOpen] = useState(false)
-  const [isMinimized, setIsMinimized] = useState(false)
-  const [message, setMessage] = useState('')
+  const [input, setInput] = useState('')
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: 'bot', content: "Hello! Welcome to RD Realty. How can I assist you today? You can also check out our FAQs below." }
+  ])
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsOpen(true)
-    }, 5000) // Show after 5 seconds
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
-    return () => clearTimeout(timer)
-  }, [])
-
-  const toggleMinimize = () => setIsMinimized(!isMinimized)
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log('Message submitted:', message)
-    setMessage('')
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value)
   }
 
-  const contactInfo = [
-    { icon: Phone, text: '+63 (083) 552-3548', href: 'tel:+63083552354' },
-    { icon: Mail, text: 'marketing@rdrealty.com.ph', href: 'mailto:marketing@rdrealty.com.ph' },
-    { icon: Facebook, text: 'RD Realty Development Corporation', href: 'https://www.facebook.com/RDRealty' },
-    { icon: Instagram, text: '@rdrealty', href: 'https://www.instagram.com/rdrealty' },
-  ]
+  const handleSubmit = (e: React.FormEvent, question?: string) => {
+    e.preventDefault()
+    const userInput = question || input.trim()
+    if (userInput === '') return
+
+    const userMessage: ChatMessage = { role: 'user', content: userInput }
+    setMessages(prev => [...prev, userMessage])
+
+    let botResponse = "I'm sorry, I don't have information about that. Would you like to speak with a human representative?"
+
+    if (userInput.toLowerCase().includes('contact') || userInput.toLowerCase().includes('details')) {
+      botResponse = "Here are our contact details:"
+      for (const contact of contactInfo) {
+        botResponse += `\n${contact.text}`
+      }
+    } else {
+      for (const [key, value] of Object.entries(faqData)) {
+        if (userInput.toLowerCase() === key.toLowerCase()) {
+          botResponse = value
+          break
+        }
+      }
+    }
+
+    const botMessage: ChatMessage = { role: 'bot', content: botResponse }
+    setMessages(prev => [...prev, botMessage])
+
+    setInput('')
+  }
 
   const chatVariants = {
     hidden: { opacity: 0, y: 20, scale: 0.8 },
@@ -56,126 +101,121 @@ export default function ChatbotWidget() {
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen ? (
         <motion.div
           initial="hidden"
           animate="visible"
           exit="exit"
           variants={chatVariants}
-          className="fixed bottom-8 mr-8 right-4 z-50"
+          className="fixed bottom-4 right-4 z-50"
         >
-          <AnimatePresence mode="wait">
-            {isMinimized ? (
-              <motion.div
-                key="minimized"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  onClick={toggleMinimize}
-                  className="rounded-full w-12 h-12 p-0 shadow-lg hover:shadow-xl transition-all duration-300 relative bg-gradient-to-r from-blue-500 to-blue-600"
-                  aria-label="Open chat"
-                >
-                  <Avatar className="w-full h-full">
-                    <AvatarImage src="/messenger.svg" alt="RD Realty logo" />
+          <Card className="w-96 shadow-2xl border-none overflow-hidden bg-white">
+            <CardHeader className="bg-blue-600 text-white p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Avatar>
+                    <AvatarImage src="/rdrdc.png" alt="RD Realty logo" />
                     <AvatarFallback>RD</AvatarFallback>
                   </Avatar>
-                  <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    1
-                  </Badge>
+                  <CardTitle className="text-lg font-bold">RD Realty Chat</CardTitle>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpen(false)}
+                  className="text-white hover:bg-white/20"
+                  aria-label="Close chat"
+                >
+                  <X size={20} />
                 </Button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="expanded"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-              >
-                <Card className="w-80 shadow-2xl border-none overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
-                  <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Avatar>
-                          <AvatarImage src="/rdrdc.png" alt="RD Realty logo" />
-                          <AvatarFallback>RD</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <CardTitle className="text-lg font-bold">RD Realty</CardTitle>
-                          <p className="text-xs text-blue-100">Online Now</p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={toggleMinimize}
-                          className="text-white hover:bg-white/20"
-                          aria-label="Minimize chat"
-                        >
-                          <Minus size={20} />
-                        </Button>
-                      </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <ScrollArea className="h-[300px] pr-4 mb-4">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-start mb-4 ${
+                      message.role === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
+                  >
+                    {message.role === 'bot' && (
+                      <Avatar className="mr-2">
+                        <AvatarImage src="/rdrdc.png" alt="RD Realty logo" />
+                        <AvatarFallback>RD</AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div
+                      className={`inline-block p-2 rounded-lg ${
+                        message.role === 'user'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-200 text-gray-800'
+                      }`}
+                    >
+                      {message.content}
                     </div>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <div className="space-y-4 mb-4">
-                      <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500">
-                        <p className="text-sm text-gray-700">Welcome to RD Realty! How can we assist you today?</p>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      {contactInfo.map((item, index) => (
-                        <TooltipProvider key={index}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <a
-                                href={item.href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors bg-white p-2 rounded-md shadow-sm hover:shadow-md"
-                              >
-                                <item.icon className="mr-2 h-4 w-4 text-blue-500" />
-                                {item.text}
-                              </a>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Click to {item.icon === Phone ? 'call' : item.icon === Mail ? 'email' : 'visit'}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ))}
-                    </div>
-                    <form onSubmit={handleSubmit} className="mt-4">
-                      <div className="flex items-end space-x-2">
-                        <Textarea
-                          placeholder="Type your message here..."
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value)}
-                          className="flex-grow resize-none border rounded-md focus:ring-2 focus:ring-blue-500 min-h-[80px]"
-                        />
-                      </div>
-                      <div className='mt-4'>
-                      <Button type="submit" size="icon" className="w-full">
-                        Send message. 
-                          <Send className="h-4 w-4 ml-2" />
-                        </Button>
-                      </div>
-                    </form>
-                  </CardContent>
-                  <CardFooter className="text-xs text-gray-500 p-2 bg-gray-100 flex justify-between items-center">
-                    <span className="italic">We typically reply within 24 hours.</span>
-                    <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
-                      <User className="h-4 w-4 mr-1" /> Login
+                    {message.role === 'user' && (
+                      <Avatar className="ml-2">
+                        <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                    )}
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </ScrollArea>
+              <div className="mb-4">
+                <h3 className="font-semibold mb-2">Frequently Asked Questions:</h3>
+                <ScrollArea className="h-[150px]">
+                  {Object.keys(faqData).map((question, index) => (
+                    <Button
+                      key={index}
+                      variant="ghost"
+                      className="w-full justify-start text-left mb-1 text-sm"
+                      onClick={(e) => handleSubmit(e, question)}
+                    >
+                      {question}
                     </Button>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  ))}
+                </ScrollArea>
+              </div>
+              <form onSubmit={handleSubmit} className="mt-4">
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="text"
+                    placeholder="Type your message here..."
+                    value={input}
+                    onChange={handleInputChange}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSubmit(e)
+                      }
+                    }}
+                    className="flex-grow"
+                  />
+                  <Button type="submit" size="icon">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.8, opacity: 0 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="fixed bottom-4 right-4 z-50"
+        >
+          <Button
+            onClick={() => setIsOpen(true)}
+            className="rounded-full w-12 h-12 p-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-blue-600"
+            aria-label="Open chat"
+          >
+            <MessageCircle className="text-white" size={24} />
+          </Button>
         </motion.div>
       )}
     </AnimatePresence>
