@@ -18,8 +18,8 @@ const properties = [
     id: "1",
     name: "RD Realty Development Corporation", 
     address: "45CM+3HH, General Santos City, South Cotabato", 
-    lat: 6.116650,
-    lng: 125.171720,
+    lat: 6.1164,
+    lng: 125.1716,
     contactNumber: "+63 123 456 7890",
     email: "info@rdrealty.com"
   },

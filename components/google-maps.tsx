@@ -1,14 +1,12 @@
 'use client'
 
-import { memo, useState, useCallback, useMemo } from 'react'
+import { memo, useState, useCallback, useMemo, useEffect } from 'react'
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api'
 
 interface Property {
   id: string
   name: string
   address: string
-  lat: number
-  lng: number
   contactNumber: string
   email: string
 }
@@ -17,12 +15,13 @@ interface GoogleMapsSectionProps {
   properties: Property[]
 }
 
-const DEFAULT_CENTER = { lat: 6.1164, lng: 125.1716 } // General Santos City coordinates
+const DEFAULT_CENTER = "General Santos City, Philippines"
 
 const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function GoogleMapsSection({ properties }) {
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [mapCenter, setMapCenter] = useState(DEFAULT_CENTER)
+  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral | null>(null)
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [markers, setMarkers] = useState<Array<{ position: google.maps.LatLngLiteral; property: Property }>>([])
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
 
@@ -31,25 +30,51 @@ const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function Google
     googleMapsApiKey: apiKey
   })
 
+  const geocodeAddress = useCallback((address: string): Promise<google.maps.LatLngLiteral> => {
+    return new Promise((resolve, reject) => {
+      const geocoder = new google.maps.Geocoder()
+      geocoder.geocode({ address: address }, (results, status) => {
+        if (status === 'OK' && results && results[0]) {
+          const location = results[0].geometry.location
+          resolve({ lat: location.lat(), lng: location.lng() })
+        } else {
+          reject(new Error('Geocode was not successful'))
+        }
+      })
+    })
+  }, [])
+
+  useEffect(() => {
+    if (isLoaded) {
+      // Set initial map center
+      geocodeAddress(DEFAULT_CENTER).then(setMapCenter).catch(console.error)
+
+      // Geocode all property addresses
+      Promise.all(properties.map(property => 
+        geocodeAddress(property.address)
+          .then(position => ({ position, property }))
+          .catch(() => null)
+      )).then(results => {
+        setMarkers(results.filter((result): result is { position: google.maps.LatLngLiteral; property: Property } => result !== null))
+      })
+    }
+  }, [isLoaded, properties, geocodeAddress])
+
   const handleSearch = useCallback((e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (searchQuery && isLoaded) {
-      const geocoder = new google.maps.Geocoder()
-      geocoder.geocode({ address: searchQuery }, (results, status) => {
-        if (status === 'OK' && results && results[0]) {
-          const location = results[0].geometry.location
-          setMapCenter({ lat: location.lat(), lng: location.lng() })
-        } else {
-          alert('Geocode was not successful for the following reason: ' + status)
-        }
+      geocodeAddress(searchQuery).then(setMapCenter).catch(() => {
+        alert('Location not found. Please try a different search term.')
       })
     }
-  }, [searchQuery, isLoaded])
+  }, [searchQuery, isLoaded, geocodeAddress])
 
   const handlePropertyClick = useCallback((property: Property) => {
-    setMapCenter({ lat: property.lat, lng: property.lng })
-    setSelectedProperty(property)
-  }, [])
+    geocodeAddress(property.address).then(position => {
+      setMapCenter(position)
+      setSelectedProperty(property)
+    }).catch(console.error)
+  }, [geocodeAddress])
 
   const mapOptions = useMemo(() => ({
     disableDefaultUI: true,
@@ -82,17 +107,17 @@ const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function Google
 
         <div className="grid md:grid-cols-2 gap-8">
           <div className="aspect-w-16 aspect-h-9">
-            {isLoaded ? (
+            {isLoaded && mapCenter ? (
               <GoogleMap
                 mapContainerStyle={{ width: '100%', height: '450px' }}
                 center={mapCenter}
                 zoom={12}
                 options={mapOptions}
               >
-                {properties.map((property) => (
+                {markers.map(({ position, property }) => (
                   <Marker
                     key={property.id}
-                    position={{ lat: property.lat, lng: property.lng }}
+                    position={position}
                     title={property.name}
                     onClick={() => handlePropertyClick(property)}
                   />
