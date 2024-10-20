@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useState, useCallback, useMemo, useEffect } from 'react'
+import { memo, useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,7 @@ const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function Google
   const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral | null>(null)
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [markers, setMarkers] = useState<Array<{ position: google.maps.LatLngLiteral; property: Property }>>([])
+  const propertyRefs = useRef<{ [key: string]: HTMLLIElement | null }>({})
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
 
@@ -75,6 +76,7 @@ const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function Google
     geocodeAddress(property.address).then(position => {
       setMapCenter(position)
       setSelectedProperty(property)
+      propertyRefs.current[property.id]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }).catch(console.error)
   }, [geocodeAddress])
 
@@ -143,7 +145,8 @@ const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function Google
                 <ul className="space-y-4">
                   {properties.map((property) => (
                     <li 
-                      key={property.id} 
+                      key={property.id}
+                      ref={el => propertyRefs.current[property.id] = el}
                       className={`p-4 rounded-md cursor-pointer transition-colors ${
                         selectedProperty?.id === property.id ? 'bg-primary/10' : 'hover:bg-muted'
                       }`}
