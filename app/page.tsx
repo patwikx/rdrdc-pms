@@ -46,7 +46,21 @@ const properties = [
     name: "Norfolk Pine Subdivision", 
     address: "44VJ+568, General Santos City Circumferential Rd, General Santos City, 9500 South Cotabato", 
     contactNumber: "+63 456 789 0123",
-    email: "info@fitmartgensan.com"
+    email: "info@norfolkpine.com"
+  },
+  { 
+    id: "6",
+    name: "RD City Central Business District", 
+    address: "545C+GFP RD City Central Business District, Polomolok, South Cotabato", 
+    contactNumber: "+63 456 789 0123",
+    email: "info@rdrealty.com.ph"
+  },
+  { 
+    id: "7",
+    name: "RD Realty Development Corporation - Cebu", 
+    address: "8W92+9CP, Cebu City, 6000 Cebu", 
+    contactNumber: "+63 456 789 0123",
+    email: "info@rdrealty.com.ph"
   },
 ];
 

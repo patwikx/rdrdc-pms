@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useState, useCallback, useMemo, useEffect, useRef } from 'react'
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api'
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -26,6 +26,7 @@ const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function Google
   const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral | null>(null)
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [markers, setMarkers] = useState<Array<{ position: google.maps.LatLngLiteral; property: Property }>>([])
+  const [activeMarker, setActiveMarker] = useState<Property | null>(null)
   const propertyRefs = useRef<{ [key: string]: HTMLLIElement | null }>({})
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
@@ -76,14 +77,18 @@ const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function Google
     geocodeAddress(property.address).then(position => {
       setMapCenter(position)
       setSelectedProperty(property)
+      setActiveMarker(property)
       propertyRefs.current[property.id]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }).catch(console.error)
   }, [geocodeAddress])
 
   const mapOptions = useMemo((): google.maps.MapOptions => ({
-    disableDefaultUI: true,
+    disableDefaultUI: false,
     clickableIcons: false,
-    scrollwheel: true
+    scrollwheel: true,
+    mapTypeControlOptions: {
+      mapTypeIds: ['roadmap', 'satellite']
+    }
   }), [])
 
   return (
@@ -124,7 +129,16 @@ const GoogleMapsSection: React.FC<GoogleMapsSectionProps> = memo(function Google
                         position={position}
                         title={property.name}
                         onClick={() => handlePropertyClick(property)}
-                      />
+                      >
+                        {activeMarker === property && (
+                          <InfoWindow onCloseClick={() => setActiveMarker(null)}>
+                            <div>
+                              <h3 className="font-bold">{property.name}</h3>
+                              <p>{property.address}</p>
+                            </div>
+                          </InfoWindow>
+                        )}
+                      </Marker>
                     ))}
                   </GoogleMap>
                 ) : (
