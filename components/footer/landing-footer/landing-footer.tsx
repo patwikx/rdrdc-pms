@@ -23,7 +23,7 @@ export default function LandingFooterPage() {
                 Your premier partner in real estate solutions.
               </p>
               <div className="flex space-x-6">
-                <a href="https://www.facebook.com/RDRealty" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white">
+                <a href="https://www.facebook.com/RDRealtyGensan" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white">
                   <span className="sr-only">Facebook</span>
                   <Facebook className="h-6 w-6" />
                 </a>

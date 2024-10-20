@@ -12,7 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { toast } from '@/components/ui/use-toast'
-import { AlertCircle, CheckCircle2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, CalendarIcon } from 'lucide-react'
+import { Textarea } from "@/components/ui/textarea"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format } from "date-fns"
 
 interface Space {
   id: string;
@@ -31,6 +35,7 @@ interface Property {
 }
 
 const formSchema = z.object({
+  bpCode: z.string().min(1, "BP Code is required"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address"),
@@ -42,11 +47,15 @@ const formSchema = z.object({
   rent: z.number().min(0, "Rent must be a positive number"),
   leaseStartDate: z.string().min(1, "Lease start date is required"),
   leaseEndDate: z.string().min(1, "Lease end date is required"),
+  securityDeposit: z.number().min(0, "Security deposit must be a positive number"),
+  utilityDeposit: z.number().min(0, "Utility deposit must be a positive number"),
+  specialConditions: z.string().optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
 
 const initialFormData: FormData = {
+  bpCode: '',
   firstName: '',
   lastName: '',
   email: '',
@@ -58,10 +67,13 @@ const initialFormData: FormData = {
   rent: 0,
   leaseStartDate: '',
   leaseEndDate: '',
+  securityDeposit: 0,
+  utilityDeposit: 0,
+  specialConditions: '',
 }
 
 const steps = [
-  { title: 'Personal Information', component: PersonalInformationForm },
+  { title: 'Tenant Information', component: TenantInformationForm },
   { title: 'Lease Details', component: LeaseDetailsForm },
   { title: 'Confirmation', component: ConfirmationStep },
 ]
@@ -108,8 +120,9 @@ export default function TenantOnboarding({ onLeaseCreated }: { onLeaseCreated: (
   }
 
   const nextStep = () => {
-    const currentStepData = steps[currentStep].component === PersonalInformationForm
+    const currentStepData = steps[currentStep].component === TenantInformationForm
       ? {
+          bpCode: formData.bpCode,
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
@@ -123,6 +136,9 @@ export default function TenantOnboarding({ onLeaseCreated }: { onLeaseCreated: (
           rent: formData.rent,
           leaseStartDate: formData.leaseStartDate,
           leaseEndDate: formData.leaseEndDate,
+          securityDeposit: formData.securityDeposit,
+          utilityDeposit: formData.utilityDeposit,
+          specialConditions: formData.specialConditions,
         }
 
     const result = validateStep(currentStepData)
@@ -142,16 +158,35 @@ export default function TenantOnboarding({ onLeaseCreated }: { onLeaseCreated: (
 
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0))
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: name === 'rent' ? parseFloat(value) || 0 : value }))
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: ['rent', 'securityDeposit', 'utilityDeposit'].includes(name) ? parseFloat(value) || 0 : value 
+    }))
     setErrors(prev => prev.filter(error => error.path[0] !== name))
 
     if (name === 'spaceId') {
       const selectedSpace = vacantSpaces.find(space => space.id === value)
       if (selectedSpace) {
-        setFormData(prev => ({ ...prev, rent: parseFloat(selectedSpace.totalSpaceRent) || 0 }))
+        const rent = parseFloat(selectedSpace.totalSpaceRent) || 0
+        setFormData(prev => ({ 
+          ...prev, 
+          rent: rent,
+          securityDeposit: rent * 3, // Set security deposit to 2 months' rent
+          utilityDeposit: rent * 0.5 // Set utility deposit to half month's rent
+        }))
       }
+    }
+  }
+
+  const handleDateChange = (date: Date | undefined, field: 'leaseStartDate' | 'leaseEndDate') => {
+    if (date) {
+      setFormData(prev => ({
+        ...prev,
+        [field]: format(date, "yyyy-MM-dd")
+      }))
+      setErrors(prev => prev.filter(error => error.path[0] !== field))
     }
   }
 
@@ -159,11 +194,7 @@ export default function TenantOnboarding({ onLeaseCreated }: { onLeaseCreated: (
     setIsSubmitting(true)
     try {
       const validatedData = formSchema.parse(formData)
-      const response = await axios.post('/api/onboard-tenant', {
-        ...validatedData,
-        leaseStart: validatedData.leaseStartDate,
-        leaseEnd: validatedData.leaseEndDate,
-      })
+      const response = await axios.post('/api/onboard-tenant', validatedData)
       console.log('Tenant onboarded successfully:', response.data)
       toast({
         title: "Success",
@@ -208,23 +239,23 @@ export default function TenantOnboarding({ onLeaseCreated }: { onLeaseCreated: (
       <div className="flex-1 p-8">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>Add New Tenant</Button>
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Add New Tenant</Button>
           </DialogTrigger>
           <DialogContent className="w-full max-w-2xl mx-auto">
             <CardHeader>
-              <CardTitle>{steps[currentStep].title}</CardTitle>
+              <CardTitle className="text-2xl font-bold text-primary">{steps[currentStep].title}</CardTitle>
               <CardDescription>Step {currentStep + 1} of {steps.length}</CardDescription>
-              <Separator />
+              <Separator className="my-4" />
             </CardHeader>
 
-            <CardContent className='mt-[-20px]'>
+            <CardContent className="mt-[-30px]">
               {errors.length > 0 && (
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-md">
                   <div className="flex items-center space-x-2">
-                    <AlertCircle className="h-5 w-5 text-red-500" />
-                    <h3 className="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+                    <AlertCircle className="h-5 w-5 text-destructive" />
+                    <h3 className="text-sm font-medium text-destructive">Please correct the following errors:</h3>
                   </div>
-                  <ul className="mt-2 text-sm text-red-700 list-disc list-inside">
+                  <ul className="mt-2 text-sm text-destructive list-disc list-inside">
                     {errors.map((error, index) => (
                       <li key={index}>{error.message}</li>
                     ))}
@@ -233,27 +264,30 @@ export default function TenantOnboarding({ onLeaseCreated }: { onLeaseCreated: (
               )}
               <motion.div
                 key={currentStep}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
                 className="relative w-full"
               >
                 <CurrentComponent 
                   formData={formData} 
                   handleInputChange={handleInputChange} 
+                  handleDateChange={handleDateChange}
                   properties={properties}
                   vacantSpaces={vacantSpaces}
                   errors={errors}
                 />
               </motion.div>
             </CardContent>
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex justify-between mt-2">
               <Button variant="outline" onClick={prevStep} disabled={currentStep === 0}>
                 Previous
               </Button>
               <Button 
                 onClick={currentStep === steps.length - 1 ? handleSubmit : nextStep}
                 disabled={isSubmitting}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {isSubmitting ? 'Submitting...' : currentStep === steps.length - 1 ? 'Submit' : 'Next'}
               </Button>
@@ -265,42 +299,49 @@ export default function TenantOnboarding({ onLeaseCreated }: { onLeaseCreated: (
   )
 }
 
-function PersonalInformationForm({ formData, handleInputChange, errors }: { formData: FormData; handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void; errors: z.ZodIssue[] }) {
+function TenantInformationForm({ formData, handleInputChange, errors }: { formData: FormData; handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void; errors: z.ZodIssue[] }) {
   const getError = (field: keyof FormData) => errors.find(error => error.path[0] === field)?.message
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="bpCode">BP Code</Label>
+        <Input id="bpCode" name="bpCode" value={formData.bpCode} onChange={handleInputChange} placeholder="BP-12345" className="w-full" />
+        {getError('bpCode') && <p className="text-sm text-destructive">{getError('bpCode')}</p>}
+      </div>
+      <div className="grid grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="firstName">First Name</Label>
-          <Input id="firstName" name="firstName" value={formData.firstName} onChange={handleInputChange} placeholder="John" />
-          {getError('firstName') && <p className="text-sm text-red-500">{getError('firstName')}</p>}
+          <Input id="firstName" name="firstName" value={formData.firstName} onChange={handleInputChange} placeholder="John" className="w-full" />
+          {getError('firstName') && <p className="text-sm text-destructive">{getError('firstName')}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="lastName">Last Name</Label>
-          <Input id="lastName" name="lastName" value={formData.lastName} onChange={handleInputChange} placeholder="Doe" />
-          {getError('lastName') && <p className="text-sm text-red-500">{getError('lastName')}</p>}
+          <Input id="lastName" name="lastName" value={formData.lastName} onChange={handleInputChange} placeholder="Doe" className="w-full" />
+          {getError('lastName') && <p className="text-sm text-destructive">{getError('lastName')}</p>}
         </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="john.doe@example.com" />
-        {getError('email') && <p className="text-sm text-red-500">{getError('email')}</p>}
+        <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="john.doe@example.com" className="w-full" />
+        {getError('email') && <p className="text-sm text-destructive">{getError('email')}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="contactNo">Phone Number</Label>
-        <Input id="contactNo" name="contactNo" type="tel" value={formData.contactNo} onChange={handleInputChange} placeholder="(123) 456-7890" />
-        {getError('contactNo') && <p className="text-sm text-red-500">{getError('contactNo')}</p>}
+        <Input id="contactNo" 
+
+ name="contactNo" type="tel" value={formData.contactNo} onChange={handleInputChange} placeholder="(123) 456-7890" className="w-full" />
+        {getError('contactNo') && <p className="text-sm text-destructive">{getError('contactNo')}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="address">Address</Label>
-        <Input id="address" name="address" value={formData.address} onChange={handleInputChange} placeholder="123 Main St, City, State, ZIP" />
-        {getError('address') && <p className="text-sm text-red-500">{getError('address')}</p>}
+        <Input id="address" name="address" value={formData.address} onChange={handleInputChange} placeholder="123 Main St, City, State, ZIP" className="w-full" />
+        {getError('address') && <p className="text-sm text-destructive">{getError('address')}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="companyName">Company Name (Optional)</Label>
-        <Input id="companyName" name="companyName" value={formData.companyName} onChange={handleInputChange} placeholder="Company Name" />
-        {getError('companyName') && <p className="text-sm text-red-500">{getError('companyName')}</p>}
+        <Input id="companyName" name="companyName" value={formData.companyName} onChange={handleInputChange} placeholder="Company Name" className="w-full" />
+        {getError('companyName') && <p className="text-sm text-destructive">{getError('companyName')}</p>}
       </div>
     </div>
   )
@@ -308,13 +349,15 @@ function PersonalInformationForm({ formData, handleInputChange, errors }: { form
 
 function LeaseDetailsForm({ 
   formData, 
-  handleInputChange, 
-  properties, 
+  handleInputChange,
+  handleDateChange,
+  properties,
   vacantSpaces,
   errors
 }: { 
   formData: FormData; 
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void; 
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void; 
+  handleDateChange: (date: Date | undefined, field: 'leaseStartDate' | 'leaseEndDate') => void;
   properties: Property[];
   vacantSpaces: Space[];
   errors: z.ZodIssue[];
@@ -330,7 +373,7 @@ function LeaseDetailsForm({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="propertyId">Property</Label>
         <Select 
@@ -338,7 +381,7 @@ function LeaseDetailsForm({
           value={formData.propertyId} 
           onValueChange={(value) => handleInputChange({ target: { name: 'propertyId', value } } as any)}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a property" />
           </SelectTrigger>
           <SelectContent>
@@ -349,8 +392,7 @@ function LeaseDetailsForm({
             ))}
           </SelectContent>
         </Select>
-        
-        {getError('propertyId') && <p className="text-sm  text-red-500">{getError('propertyId')}</p>}
+        {getError('propertyId') && <p className="text-sm text-destructive">{getError('propertyId')}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="spaceId">Space</Label>
@@ -359,7 +401,7 @@ function LeaseDetailsForm({
           value={formData.spaceId} 
           onValueChange={(value) => handleInputChange({ target: { name: 'spaceId', value } } as any)}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a space" />
           </SelectTrigger>
           <SelectContent>
@@ -370,8 +412,10 @@ function LeaseDetailsForm({
             ))}
           </SelectContent>
         </Select>
-        {getError('spaceId') && <p className="text-sm text-red-500">{getError('spaceId')}</p>}
+        {getError('spaceId') && <p className="text-sm text-destructive">{getError('spaceId')}</p>}
       </div>
+
+      <div className='grid grid-cols-2 gap-6'>
       <div className="space-y-2">
         <Label htmlFor="rent">Monthly Rent Amount</Label>
         <Input 
@@ -380,21 +424,82 @@ function LeaseDetailsForm({
           type="text" 
           value={formatCurrency(formData.rent)} 
           readOnly 
-          className="bg-gray-100"
+          className="w-full bg-muted"
         />
-        {getError('rent') && <p className="text-sm text-red-500">{getError('rent')}</p>}
+        {getError('rent') && <p className="text-sm text-destructive">{getError('rent')}</p>}
       </div>
-      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="securityDeposit">Security Deposit</Label>
+          <Input 
+            id="securityDeposit" 
+            name="securityDeposit" 
+            type="text" 
+            value={formatCurrency(formData.securityDeposit)}
+            onChange={handleInputChange}
+            className="w-full"
+          />
+          {getError('securityDeposit') && <p className="text-sm text-destructive">{getError('securityDeposit')}</p>}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="leaseStartDate">Lease Start Date</Label>
-          <Input id="leaseStartDate" name="leaseStartDate" type="date" value={formData.leaseStartDate} onChange={handleInputChange} />
-          {getError('leaseStartDate') && <p className="text-sm text-red-500">{getError('leaseStartDate')}</p>}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={`w-full justify-start text-left font-normal ${!formData.leaseStartDate && "text-muted-foreground"}`}
+              >
+                {formData.leaseStartDate ? format(new Date(formData.leaseStartDate), "PPP") : <span>Pick a date</span>}
+                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={formData.leaseStartDate ? new Date(formData.leaseStartDate) : undefined}
+                onSelect={(date) => handleDateChange(date, 'leaseStartDate')}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          {getError('leaseStartDate') && <p className="text-sm text-destructive">{getError('leaseStartDate')}</p>}
         </div>
         <div className="space-y-2">
-          <Label  htmlFor="leaseEndDate">Lease End Date</Label>
-          <Input id="leaseEndDate" name="leaseEndDate" type="date" value={formData.leaseEndDate} onChange={handleInputChange} />
-          {getError('leaseEndDate') && <p className="text-sm text-red-500">{getError('leaseEndDate')}</p>}
+          <Label htmlFor="leaseEndDate">Lease End Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={`w-full justify-start text-left font-normal ${!formData.leaseEndDate && "text-muted-foreground"}`}
+              >
+                {formData.leaseEndDate ? format(new Date(formData.leaseEndDate), "PPP") : <span>Pick a date</span>}
+                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={formData.leaseEndDate ? new Date(formData.leaseEndDate) : undefined}
+                onSelect={(date) => handleDateChange(date, 'leaseEndDate')}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          {getError('leaseEndDate') && <p className="text-sm text-destructive">{getError('leaseEndDate')}</p>}
         </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="specialConditions">Special Conditions (Optional)</Label>
+        <Textarea 
+          id="specialConditions" 
+          name="specialConditions" 
+          value={formData.specialConditions} 
+          onChange={handleInputChange}
+          placeholder="Enter any special conditions or notes"
+          className="w-full h-24"
+        />
+        {getError('specialConditions') && <p className="text-sm text-destructive">{getError('specialConditions')}</p>}
       </div>
     </div>
   )
@@ -409,23 +514,12 @@ function ConfirmationStep({ formData }: { formData: FormData }) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-      <div className="p-6 space-y-6">
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <CheckCircle2 className="h-6 w-6 text-green-500" />
-            <h2 className="text-2xl font-bold text-gray-900">Confirm Your Details</h2>
-          </div>
-          <p className="text-sm text-gray-500">
-            Please review the information below before submitting.
-          </p>
-        </div>
-        
-        <Separator className="my-6" />
-        
+    <div className="w-full max-w-2xl mx-auto bg-card text-card-foreground shadow-lg rounded-lg overflow-hidden">
+      <div className="p-6 space-y-6">                
         <div className="space-y-6">
-          <Section title="Personal Information">
+          <Section title="Tenant Information">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoItem label="BP Code" value={formData.bpCode} />
               <InfoItem label="Name" value={`${formData.firstName} ${formData.lastName}`} />
               <InfoItem label="Email" value={formData.email} />
               <InfoItem label="Contact No" value={formData.contactNo} />
@@ -440,7 +534,9 @@ function ConfirmationStep({ formData }: { formData: FormData }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InfoItem label="Property ID" value={formData.propertyId} />
               <InfoItem label="Space ID" value={formData.spaceId} />
-              <InfoItem label="Rent" value={formatCurrency(formData.rent)} />
+              <InfoItem label="Monthly Rent" value={formatCurrency(formData.rent)} />
+              <InfoItem label="Security Deposit" value={formatCurrency(formData.securityDeposit)} />
+              <InfoItem label="Utility Deposit" value={formatCurrency(formData.utilityDeposit)} />
               <InfoItem label="Lease Start Date" value={formData.leaseStartDate} />
               <InfoItem label="Lease End Date" value={formData.leaseEndDate} />
             </div>
@@ -454,7 +550,7 @@ function ConfirmationStep({ formData }: { formData: FormData }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+      <h3 className="text-lg font-semibold text-primary">{title}</h3>
       {children}
     </div>
   )
@@ -463,8 +559,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function InfoItem({ label, value, className = "" }: { label: string; value: string; className?: string }) {
   return (
     <div className={`space-y-1 ${className}`}>
-      <p className="text-sm font-medium text-gray-500">{label}</p>
-      <p className="text-sm font-semibold text-gray-900">{value}</p>
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <p className="text-sm font-semibold">{value}</p>
     </div>
   )
 }

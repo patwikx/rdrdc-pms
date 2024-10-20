@@ -5,21 +5,21 @@ const prisma = new PrismaClient()
 
 export async function GET() {
   try {
-    const leases = await prisma.lease.findMany({
+    const tenants = await prisma.tenant.findMany({
       include: {
-        tenant: true,
-        property: {
+        space: {
           include: {
-            space: true
+            property: true
           }
-        }
+        },
+        lease: true
       }
     })
 
-    return NextResponse.json(leases)
+    return NextResponse.json(tenants)
   } catch (error) {
-    console.error('Error fetching leases:', error)
-    return NextResponse.json({ error: 'Error fetching leases' }, { status: 500 })
+    console.error('Error fetching tenants:', error)
+    return NextResponse.json({ error: 'Error fetching tenants' }, { status: 500 })
   } finally {
     await prisma.$disconnect()
   }

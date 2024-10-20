@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
+import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -16,7 +17,12 @@ import {
   Phone,
   Mail,
   MoreHorizontal,
-  Plus
+  Plus,
+  Building,
+  MapPin,
+  User,
+  Lock,
+  Clock
 } from 'lucide-react'
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
@@ -24,39 +30,66 @@ import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface Tenant {
-  id: number;
-  name: string;
+  id: string;
+  firstName: string;
+  lastName: string;
+  contactNo: string | null;
+  companyName: string | null;
+  address: string | null;
   email: string;
-  phone: string;
-  moveInDate: string;
-  property: string;
-  unit: string;
-  rentAmount: number;
-  status: 'active' | 'late' | 'pending';
-}
-
-// Mock data for tenants
-const tenants: Tenant[] = [
-  { id: 1, name: "Larry Paler", email: "lpaler@gmail.com", phone: "(555) 123-4567", moveInDate: "2022-01-15", property: "Tambykez", unit: "A101", rentAmount: 1500, status: 'active' },
-  { id: 2, name: "Jimster Santillan", email: "jsantillan@gmail.com", phone: "(555) 987-6543", moveInDate: "2021-11-01", property: "PAG-IBIG Office", unit: "B205", rentAmount: 2000, status: 'late' },
-  { id: 3, name: "Kristian Quizon", email: "kquizon@gmail.com", phone: "(555) 246-8135", moveInDate: "2022-03-10", property: "RD Retail Campang Ext.", unit: "C303", rentAmount: 2500, status: 'active' },
-  { id: 4, name: "Argie Tacay", email: "atacay@gmail.com", phone: "(555) 369-2580", moveInDate: "2022-05-20", property: "7-11 Daproza Avenue", unit: "D404", rentAmount: 1800, status: 'pending' },
-  { id: 5, name: "Cezar Regalado", email: "cregalado@gmail.com", phone: "(555) 159-7531", moveInDate: "2021-09-01", property: "RD Hardware Santiago", unit: "A202", rentAmount: 1600, status: 'active' },
-]
-
-const statusColors = {
-  active: 'bg-green-500',
-  late: 'bg-red-500',
-  pending: 'bg-yellow-500'
+  emailVerified: Date | null;
+  image: string | null;
+  role: 'Administrator' | 'Manager' | 'Supervisor' | 'Tenant' | 'Staff' | null;
+  isTwoFactorEnabled: boolean;
+  createdAt: Date;
+  deletedAt: Date | null;
+  updatedAt: Date;
+  space: Array<{
+    id: string;
+    spaceNumber: string;
+    spaceArea: string;
+    spaceRate: string | null;
+    totalSpaceRent: number | null;
+    spaceStatus: string | null;
+    spaceRemarks: string | null;
+    property: {
+      id: string;
+      propertyName: string;
+      address: string;
+      city: string;
+      province: string;
+    };
+  }>;
+  lease: Array<{
+    id: string;
+    rent: number;
+    status: string;
+    leaseStart: string | null;
+    leaseEnd: string | null;
+  }>;
 }
 
 export default function TenantsPage() {
+  const [tenants, setTenants] = useState<Tenant[]>([])
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
 
+  const fetchTenants = useCallback(async () => {
+    try {
+      const response = await axios.get<Tenant[]>('/api/fetch-tenants')
+      setTenants(response.data)
+    } catch (error) {
+      console.error('Error fetching tenants:', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchTenants()
+  }, [fetchTenants])
+
   const filteredTenants = tenants.filter(tenant =>
-    tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    `${tenant.firstName} ${tenant.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     tenant.email.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
@@ -117,14 +150,16 @@ export default function TenantsPage() {
                         onClick={() => setSelectedTenant(tenant)}
                       >
                         <Avatar className="h-10 w-10 mr-3">
-                          <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${tenant.name}`} alt={tenant.name} />
-                          <AvatarFallback>{tenant.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                          <AvatarImage src={tenant.image || `https://api.dicebear.com/6.x/initials/svg?seed=${tenant.firstName} ${tenant.lastName}`} alt={`${tenant.firstName} ${tenant.lastName}`} />
+                          <AvatarFallback>{tenant.firstName[0]}{tenant.lastName[0]}</AvatarFallback>
                         </Avatar>
                         <div className="flex-grow min-w-0">
                           <div className="flex justify-between items-baseline">
-                            <p className="font-medium truncate">{tenant.name}</p>
+                            <p className="font-medium truncate">{tenant.firstName} {tenant.lastName}</p>
                           </div>
-                          <p className="text-sm text-muted-foreground truncate">{tenant.property} - Unit {tenant.unit}</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {tenant.space[0]?.property.propertyName} - Unit {tenant.space[0]?.spaceNumber}
+                          </p>
                         </div>
                       </div>
                     </motion.div>
@@ -148,7 +183,7 @@ export default function TenantsPage() {
                 >
                   <CardHeader className="flex-shrink-0">
                     <div className="flex justify-between items-center">
-                      <h2 className="text-2xl font-bold">{selectedTenant.name}</h2>
+                      <h2 className="text-2xl font-bold">{selectedTenant.firstName} {selectedTenant.lastName}</h2>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -170,23 +205,57 @@ export default function TenantsPage() {
                         <section>
                           <h3 className="text-lg font-semibold mb-2">Contact Information</h3>
                           <div className="space-y-2">
-                            <p className="flex items-center"><Phone className="mr-2 h-4 w-4" /> {selectedTenant.phone}</p>
+                            <p className="flex items-center"><Phone className="mr-2 h-4 w-4" /> {selectedTenant.contactNo || 'N/A'}</p>
                             <p className="flex items-center"><Mail className="mr-2 h-4 w-4" /> {selectedTenant.email}</p>
+                            <p className="flex items-center"><Building className="mr-2 h-4 w-4" /> {selectedTenant.companyName || 'N/A'}</p>
+                            <p className="flex items-center"><MapPin className="mr-2 h-4 w-4" /> {selectedTenant.address || 'N/A'}</p>
+                          </div>
+                        </section>
+                        <Separator />
+                        <section>
+                          <h3 className="text-lg font-semibold mb-2">Account Information</h3>
+                          <div className="space-y-2">
+                            <p className="flex items-center"><User className="mr-2 h-4 w-4" /> Role: {selectedTenant.role || 'N/A'}</p>
+                            <p className="flex items-center"><Lock className="mr-2 h-4 w-4" /> Two-Factor Auth: {selectedTenant.isTwoFactorEnabled ? 'Enabled' : 'Disabled'}</p>
                           </div>
                         </section>
                         <Separator />
                         <section>
                           <h3 className="text-lg font-semibold mb-2">Lease Information</h3>
                           <div className="space-y-2">
-                            <p className="flex items-center"><Calendar className="mr-2 h-4 w-4" /> Move-in Date: {selectedTenant.moveInDate}</p>
-                            <p className="flex items-center">
-                              <DollarSign className="mr-2 h-4 w-4" /> 
-                              Rent Amount: ₱{new Intl.NumberFormat('en-PH', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                              }).format(selectedTenant.rentAmount)}
-                            </p>
-                            <p className="flex items-center"><Home className="mr-2 h-4 w-4" /> {selectedTenant.property} - Unit {selectedTenant.unit}</p>
+                            {selectedTenant.lease.map((lease, index) => (
+                              <div key={lease.id} className="bg-accent p-3 rounded-md">
+                                <p className="flex items-center"><Calendar className="mr-2 h-4 w-4" /> Lease {index + 1}: {lease.leaseStart || 'N/A'} - {lease.leaseEnd || 'N/A'}</p>
+                                <p className="flex items-center">
+                                  <DollarSign className="mr-2 h-4 w-4" /> 
+                                  Rent Amount: ₱{new Intl.NumberFormat('en-PH', {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                  }).format(lease.rent)}
+                                </p>
+                                <p className="flex items-center"><Home className="mr-2 h-4 w-4" /> Status: {lease.status}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </section>
+                        <Separator />
+                        <section>
+                          <h3 className="text-lg font-semibold mb-2">Space Information</h3>
+                          <div className="space-y-2">
+                            {selectedTenant.space.map((space) => (
+                              <div key={space.id} className="bg-accent p-3 rounded-md">
+                                <p className="flex items-center"><Home className="mr-2 h-4 w-4" /> {space.property.propertyName} - Unit {space.spaceNumber}</p>
+                                <p className="flex items-center"><MapPin className="mr-2 h-4 w-4" /> {space.property.address}, {space.property.city}, {space.property.province}</p>
+                                <p className="flex items-center">Area: {space.spaceArea}</p>
+                                <p className="flex items-center">Rate: {space.spaceRate || 'N/A'}</p>
+                                <p className="flex items-center">Total Rent: ₱{space.totalSpaceRent ? new Intl.NumberFormat('en-PH', {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }).format(space.totalSpaceRent) : 'N/A'}</p>
+                                <p className="flex items-center">Status: {space.spaceStatus || 'N/A'}</p>
+                                <p className="flex items-center">Remarks: {space.spaceRemarks || 'N/A'}</p>
+                              </div>
+                            ))}
                           </div>
                         </section>
                         <Separator />
@@ -229,7 +298,7 @@ export default function TenantsPage() {
                   transition={{ duration: 0.3 }}
                   className="flex justify-center items-center h-full"
                 >
-                  <p className="text-muted-foreground">Select a tenant to view details</p>
+                  <p  className="text-muted-foreground">Select a tenant to view details</p>
                 </motion.div>
               )}
             </AnimatePresence>
